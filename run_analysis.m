@@ -120,7 +120,7 @@ ops.noiseLevel = [0];
 ops.smooth = 2;
 ops.timeInd = 1;
 ops.include = include;
-ops.sig_neurons = true;
+ops.sig_neurons = false;
 
 % results filename
 if ops.sig_neurons
