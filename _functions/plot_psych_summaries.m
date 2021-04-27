@@ -1,7 +1,7 @@
 function res = plot_psych_summaries(r,ops)
 
 %% plot stuff
-nrows = 5; ncols = 6;
+nrows = 4; ncols = 6;
 col = {'b','r'};
 col_rgb = [0 0 1; 1 0 0];
 col_lite = {[.7 .7 1],[1 .7 .7]};
@@ -35,8 +35,13 @@ badSess = max(r.beh_rate_adj_PC,[],2,'omitnan') < .8;
 include = ~badMouse;
 
 
-%% summary plots
+
+
+
+%% AVERAGES
 f2 = figure(121212); clf;
+sz = [1200 900];
+set(f2,'Position',[0 0 sz]);
 
 % precompute behavioral psych curves
 subplot(nrows,ncols,1); hold on;
@@ -56,8 +61,7 @@ for i = 1:2
 end
 xlim(xl); ylim([.45 1]); plotPrefs; 
 title(labels{1}); ylabel('Percent Correct');
-
-
+xlabel('Target Volume (dB SNR)');
 
 % for the remaining fields
 for j = 2:length(fields)
@@ -99,25 +103,36 @@ subplot(nrows,ncols,7); hold on;
 for i = 1:2
     
     I = r.contrastI==(i-1) & include;
-    
-    errorBars(x_nn,r.prop_sig_neurons(I,:),col{i},[],[],[],[],...
+    x = r.vols_nn(I,:);
+    y = r.prop_sig_neurons(I,:);
+    [prms,mdl,thresh] = fitLogGrid(x(:),y(:));
+    errorBars(x_nn,y,col{i},[],[],[],[],...
               'o','LineWidth',1,'MarkerSize',3, ...
               'MarkerFaceColor',col{i});
+    plot(xf,mdl(prms,xf),'color',col{i},'linewidth',1)
+    plot([thresh thresh],[0 mdl(prms,thresh)],'color',col{i},'linewidth',.5)
 end
 ylim([0 1]); xlim(xl); xlabel('Target Volume (dB SNR)');
 ylabel('% Significant Neurons');
 
 
 
+
+
+%% THRESHOLDS
 % plot behavior thresholds against neural, for each mouse
 grpvar = 'mouse';
 
 % exclude CA121 in high contrast, include sessions with more than 3
 % significant population responses to different volumes, include
 % sessions with false alarm rates > .20
+% other include:  ~badMouse & sum(r.auc_sig,2,'omitnan')>3 &
+% r.beh_rate_adj(:,1) < .2;
+% stat = 'mean';
 include = ~badMouse & ...
           sum(r.auc_sig,2,'omitnan')>3 & ...
-          r.beh_rate_adj(:,1) < .2;
+          r.beh_rate_adj(:,1) < .3;
+stat = 'median'; %'mean';
 % ~any(thresh_all < -10,2) & ...
 % grpvar = 'sessionID';
 for k = 2:length(fields)
@@ -127,10 +142,10 @@ for k = 2:length(fields)
     neural = r.([fields{k} '_fit']).threshold(include);
     grps = r.(grpvar)(include);
     
-    ci = grpstats(contr,{grps,contr},'mean')+1;
+    ci = grpstats(contr,{grps,contr},stat)+1;
     cv = col_rgb(ci,:);
-    x = grpstats(neural,{grps,contr},'mean');
-    [y,g] = grpstats(beh,{grps,contr},{'mean','gname'});
+    x = grpstats(neural,{grps,contr},stat);
+    [y,g] = grpstats(beh,{grps,contr},{stat,'gname'});
     g = g(:,1);
     
     subplot(nrows,ncols,6+k); hold on
@@ -150,21 +165,155 @@ for k = 2:length(fields)
     plotPrefs; axis tight;
     
     % save stats for linear model
-    res.(fields{k}).stats(1).type = 'linear model all data points';
+    res.(fields{k}).stats(1).type = 'threshold linear model all data points';
     res.(fields{k}).stats(1).test = 'fitlm';
     res.(fields{k}).stats(1).p = pv;
     res.(fields{k}).stats(1).stats = lm;
     
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_thresh_lm-all_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm
+    diary off;
+    
     % linear model for low contrast only
     [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
-    title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f',b(2),b(1),pv,pv1));
-    drawnow;
+
+    % save stats for linear model
+    res.(fields{k}).stats(2).type = 'threshold linear model low contrast';
+    res.(fields{k}).stats(2).test = 'fitlm';
+    res.(fields{k}).stats(2).p = pv1;
+    res.(fields{k}).stats(2).stats = lm1;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_thresh_lm-lo_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm1
+    diary off;
+    
+    % linear model for high contrast only
+    [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
     
     % save stats for linear model
-    res.(fields{k}).stats(1).type = 'linear model all data points';
+    res.(fields{k}).stats(3).type = 'threshold linear model high contrast';
+    res.(fields{k}).stats(3).test = 'fitlm';
+    res.(fields{k}).stats(3).p = pv2;
+    res.(fields{k}).stats(3).stats = lm2;
+    title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
+                  b(2),b(1),pv,pv1,pv2));
+    drawnow;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_thresh_lm-hi_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm2
+    diary off;
+    
+    % n way anova for unmatched data
+    data = [x;y];
+    measure = [ones(size(x)); ones(size(y))*2];
+    contrast = [ci;ci];
+    [pv3 tbl] = anovan(data,{measure,contrast},...
+                     'model','interaction',...
+                     'varnames',{'threshold measure','contrast'},...
+                     'display','off');
+    res.(fields{k}).stats(4).type = 'two way anova of contrast x threshold';
+    res.(fields{k}).stats(4).test = 'anovan';
+    res.(fields{k}).stats(4).p = pv3;
+    res.(fields{k}).stats(4).stats = tbl;
+    
+    % save anova table
+    fn = sprintf('./_data/_stats/psych_thresh_anovan_%s.txt', ...
+                 fields{k});
+    writecell(tbl,fn);    
+    
+end
+
+
+
+%% SLOPES
+lims = [.025 .1];
+for k = 2:length(fields)
+    
+    contr = r.contrastI(include);
+    beh = r.beh_rate_adj_PC_fit.max_slope(include);
+    neural = r.([fields{k} '_fit']).max_slope(include);
+    grps = r.(grpvar)(include);
+    
+    ci = grpstats(contr,{grps,contr},'mean')+1;
+    cv = col_rgb(ci,:);
+    x = grpstats(neural,{grps,contr},'mean');
+    [y,g] = grpstats(beh,{grps,contr},{'mean','gname'});
+    g = g(:,1);
+    
+    subplot(nrows,ncols,12+k); hold on
+    plot(lims,lims,'k');
+
+    % linear model for all data
+    [b,pv,xp,yp,ypci,lm] = fitlmWrapper(x,y);
+    plotlmWrapper(xp,yp,ypci);
+    sh = scatter(x,y,20,cv);
+    sh.MarkerFaceColor = 'flat';
+    sh.MarkerEdgeColor = 'w';
+    xlim(lims); ylim(lims);
+    %set(gca,'xtick',[0 10 20]);
+    %set(gca,'ytick',[0 10 20]);
+    ylabel('Behavioral Slope (PC/dB)');
+    xlabel('Neural Slope (PC/dB)');
+    plotPrefs; axis tight;
+    
+    % save stats for linear model
+    res.(fields{k}).stats(1).type = 'slope linear model all data points';
     res.(fields{k}).stats(1).test = 'fitlm';
-    res.(fields{k}).stats(1).p = pv1;
-    res.(fields{k}).stats(1).stats = lm1;
+    res.(fields{k}).stats(1).p = pv;
+    res.(fields{k}).stats(1).stats = lm;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_slope_lm-all_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm
+    diary off;
+    
+    % linear model for low contrast only
+    [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
+
+    % save stats for linear model
+    res.(fields{k}).stats(2).type = 'slope linear model low contrast';
+    res.(fields{k}).stats(2).test = 'fitlm';
+    res.(fields{k}).stats(2).p = pv1;
+    res.(fields{k}).stats(2).stats = lm1;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_slope_lm-lo_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm1
+    diary off;
+    
+    % linear model for high contrast only
+    [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
+    
+    % save stats for linear model
+    res.(fields{k}).stats(3).type = 'slope linear model high contrast';
+    res.(fields{k}).stats(3).test = 'fitlm';
+    res.(fields{k}).stats(3).p = pv2;
+    res.(fields{k}).stats(3).stats = lm2;
+    title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
+                  b(2),b(1),pv,pv1,pv2));
+    drawnow;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_slope_lm-hi_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm2
+    diary off;
+    
+
     
     % format data for rmanova
     ug = unique(g);
@@ -181,14 +330,139 @@ for k = 2:length(fields)
     data = [x;y];
     measure = [ones(size(x)); ones(size(y))*2];
     contrast = [ci;ci];
-    p = anovan(data,{measure,contrast},...
-               'model','interaction',...
-               'varnames',{'threshold measure','contrast'});
+    [pv3 tbl] = anovan(data,{measure,contrast},...
+                     'model','interaction',...
+                     'varnames',{'threshold measure','contrast'},...
+                     'display','off');
+    res.(fields{k}).stats(4).type = 'two way anova of contrast x slope';
+    res.(fields{k}).stats(4).test = 'anovan';
+    res.(fields{k}).stats(4).p = pv3;
+    res.(fields{k}).stats(4).stats = tbl;
     
+    % save anova table
+    fn = sprintf('./_data/_stats/psych_anovan_slope_%s.txt', ...
+                 fields{k});
+    writecell(tbl,fn);    
     
 end
 
-keyboard
+
+
+
+%% SENSITIVITY
+% plot behavior sensitivity against neural, for each mouse
+lims = [0 3];
+for k = 2:length(fields)
+    
+    contr = r.contrastI(include);
+    beh = r.beh_rate_adj_PC_fit.sensitivity(include);
+    neural = r.([fields{k} '_fit']).sensitivity(include);
+    grps = r.(grpvar)(include);
+    
+    ci = grpstats(contr,{grps,contr},'mean')+1;
+    cv = col_rgb(ci,:);
+    x = grpstats(neural,{grps,contr},'mean');
+    [y,g] = grpstats(beh,{grps,contr},{'mean','gname'});
+    g = g(:,1);
+    
+    subplot(nrows,ncols,18+k); hold on
+    plot(lims,lims,'k');
+
+    % linear model for all data
+    [b,pv,xp,yp,ypci,lm] = fitlmWrapper(x,y);
+    plotlmWrapper(xp,yp,ypci);
+    sh = scatter(x,y,20,cv);
+    sh.MarkerFaceColor = 'flat';
+    sh.MarkerEdgeColor = 'w';
+    xlim(lims); ylim(lims);
+    %set(gca,'xtick',[0 10 20]);
+    %set(gca,'ytick',[0 10 20]);
+    ylabel('Behavioral Sensitivity');
+    xlabel('Neural Sensitivity');
+    plotPrefs; axis tight;
+    
+    % save stats for linear model
+    res.(fields{k}).stats(1).type = 'sensitivity linear model all data points';
+    res.(fields{k}).stats(1).test = 'fitlm';
+    res.(fields{k}).stats(1).p = pv;
+    res.(fields{k}).stats(1).stats = lm;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_sensitivity_lm-all_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm
+    diary off;
+    
+    % linear model for low contrast only
+    [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
+
+    % save stats for linear model
+    res.(fields{k}).stats(2).type = 'sensitivity linear model low contrast';
+    res.(fields{k}).stats(2).test = 'fitlm';
+    res.(fields{k}).stats(2).p = pv1;
+    res.(fields{k}).stats(2).stats = lm1;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_sensitivity_lm-lo_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm1
+    diary off;
+    
+    % linear model for high contrast only
+    [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
+    
+    % save stats for linear model
+    res.(fields{k}).stats(3).type = 'sensitivity linear model high contrast';
+    res.(fields{k}).stats(3).test = 'fitlm';
+    res.(fields{k}).stats(3).p = pv2;
+    res.(fields{k}).stats(3).stats = lm2;
+    title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
+                  b(2),b(1),pv,pv1,pv2));
+    drawnow;
+    
+    % save model tables
+    fn = sprintf('./_data/_stats/psych_sensitivity_lm-hi_%s.txt', ...
+                 fields{k});
+    diary(fn);
+    lm2
+    diary off;
+    
+
+    
+    % format data for rmanova
+    ug = unique(g);
+    dat = nan(length(ug),2,2);
+    for i = 1:length(ug)
+        for j = 1:2
+            ind = find(contains(g,ug{i}) & ci == j);
+            if ~isempty(ind)
+                dat(i,j,:) = [y(ind) x(ind)];
+            end
+        end
+    end
+    
+    data = [x;y];
+    measure = [ones(size(x)); ones(size(y))*2];
+    contrast = [ci;ci];
+    [pv3 tbl] = anovan(data,{measure,contrast},...
+                     'model','interaction',...
+                     'varnames',{'threshold measure','contrast'},...
+                     'display','off');
+    res.(fields{k}).stats(4).type = 'two way anova of contrast x sensitivity';
+    res.(fields{k}).stats(4).test = 'anovan';
+    res.(fields{k}).stats(4).p = pv3;
+    res.(fields{k}).stats(4).stats = tbl;
+    
+    % save anova table
+    fn = sprintf('./_data/_stats/psych_anovan_sensitivity_%s.txt', ...
+                 fields{k});
+    writecell(tbl,fn);    
+    
+end
+
+saveFigPDF(f2,sz,'./_plots/_psych_summary.pdf')
 
 
 
@@ -243,24 +517,6 @@ for k = 1:length(fields)
     end
 end
 
-
-%  ci = ones(size(res.beh_rate_adj_PC.thresh)) .* [1 2];
-%  cv = col_rgb(ci,:);
-%  for k = 2:length(fields)
-%      
-%      
-%      x = res.beh_rate_adj_PC.thresh;
-%      y = res.(fields{k}).thresh;
-%      
-%      subplot(nrows,ncols,12+k); hold on
-%      plot([-5 25],[-5 25],'k');
-%  
-%      scatter(x(:),y(:),10,cv);
-%      xlim([0 25]); ylim([0 25]);
-%      [rs,ps] = corr(x(ci==1),y(ci==1),'rows','complete','type','spearman');
-%      title(sprintf('r=%04.3f, p=%04.3f',rs,ps));
-%      
-%  end
 
 
 %% behavior plots of individual mice
@@ -339,7 +595,7 @@ for i = 1:length(uM)
 end
 
 
-saveFigPDF(f1,[250 1300],'./_plots/individual_psych_curves.pdf')
+saveFigPDF(f1,[800 1300],'./_plots/_psych_individual_curves.pdf')
 
 
 

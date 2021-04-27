@@ -1,4 +1,5 @@
 function plot_session_summary_psych(sessID,res,spikeData,sessionData,ops)
+    
 
 clf;
 
@@ -28,7 +29,7 @@ frmat = cat(1,cellRes.fr);
 frmat = frmat(:,2:end) - frmat(:,1);
 [~,cellSort] = sort(frmat(:,end),'descend');
 frmat = frmat(cellSort,:);
-cmap = zeroCMap(frmat(:),col,[1 1 1],[0 1 1],0);
+cmap = zeroCMap(frmat(:),0,col,[1 1 1],[0 1 1]);
 imagesc(snr(2:end),1:size(frmat,1),frmat);
 h = colorbar; colormap(ax,cmap); ylabel(h,'FR_{target}-FR_{noise}');
 set(gca,'xtick',snr(2:end)); set(gca,'ytick',1:size(frmat,1));
@@ -48,7 +49,7 @@ title('Cell Waveforms'); xlabel('Sample Number');
 
 
 %% population performance plots
-subplot(nrows,ncols,4:5); hold on; clear ph;
+subplot(nrows,ncols,4); hold on; clear ph;
 xl = [snr(2) snr(end)]+[-mean(diff(snr(2:end))) mean(diff(snr(2:end)))];
 plot(xl,[.5 .5],'color',[.5 .5 .5]);
 ph(1) = plot(snr(2:end),PDtoPC(popRes.beh_rate_adj(2:end),popRes.beh_rate_adj(1)),...
@@ -128,6 +129,8 @@ ylabel('spks/s');
 xlim([-.1 1.2]); plotPrefs;
 title('Target Response Times');
 xlabel('Time (s from target onset)');
+
+keyboard
 
 
 

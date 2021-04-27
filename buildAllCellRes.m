@@ -134,7 +134,7 @@ for i = 1:length(session)
                         % add in data for each neuron
                         cells(cnt).mouse = data.params.mouse;
                         cells(cnt).session = num2str(data.params.session.sessionInfo(end));
-                        cells(cnt).cellnum = data.cellInfo{c,3};
+                        cells(cnt).cellnum = data.cellInfo{c,4};
                         cells(cnt).cellcnt = c;
                         cells(cnt).cellType = lbl;
                         cells(cnt).cellID = sprintf('%s-%s-%02d-%03d-%s',...

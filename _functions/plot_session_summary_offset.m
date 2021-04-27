@@ -28,7 +28,7 @@ frmat = frmat(2:3,:,:) - frmat(1,:,:);
 for i = 1:2
     ax(i) = subplot(nrows,ncols,i);
     ngram = squeeze(frmat(i,:,:))';
-    cmap = zeroCMap(ngram,s.plot.colors(i+1,:),[1 1 1],[0 1 1],0);
+    cmap = zeroCMap(ngram,0,s.plot.colors(i+1,:),[1 1 1],[0 1 1]);
     imagesc(1:length(offs),1:size(frmat,3),ngram(cellSort,:));
     h = colorbar; colormap(ax(i),cmap); ylabel(h,['FR_{target}-''FR_{noise}']);
     if i == 1; ylabel(sprintf('Cells\n(sorted by max FR)')); end

@@ -1,0 +1,722 @@
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.46066707528755     5.01428765719305     1.68731186834697    0.135402192497734
+    x1             0.266461199622452    0.465145861541405    0.572855144275496    0.584665783941597
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 2.85
+R-squared: 0.0448,  Adjusted R-Squared: -0.0917
+F-statistic vs. constant model: 0.328, p-value = 0.585
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat                pValue      
+                   _________________    _________________    _________________    __________________
+
+    (Intercept)     9.34807785984651     3.81702896773754     2.44904556367236    0.0441690407267287
+    x1             0.202886679096726    0.356933232346956    0.568416333112716     0.587515233193883
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 2.78
+R-squared: 0.0441,  Adjusted R-Squared: -0.0924
+F-statistic vs. constant model: 0.323, p-value = 0.588
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.46066707528755     5.01428765719305     1.68731186834697    0.135402192497734
+    x1             0.266461199622452    0.465145861541405    0.572855144275496    0.584665783941597
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 2.85
+R-squared: 0.0448,  Adjusted R-Squared: -0.0917
+F-statistic vs. constant model: 0.328, p-value = 0.585
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.46066707528755     5.01428765719305     1.68731186834697    0.135402192497734
+    x1             0.266461199622452    0.465145861541405    0.572855144275496    0.584665783941597
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 2.85
+R-squared: 0.0448,  Adjusted R-Squared: -0.0917
+F-statistic vs. constant model: 0.328, p-value = 0.585
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat                pValue      
+                   _________________    _________________    _________________    __________________
+
+    (Intercept)     10.2615701813426     4.20705916227524     2.43913141829765    0.0448160264144077
+    x1             0.132911437291924    0.398452261929944    0.333569287944694     0.748473966977027
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 3.07
+R-squared: 0.0156,  Adjusted R-Squared: -0.125
+F-statistic vs. constant model: 0.111, p-value = 0.748
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                SE                 tStat                pValue      
+                   __________________    _________________    ________________    __________________
+
+    (Intercept)      11.4163092460581     3.48120561421579    3.27941251141234    0.0134979847158645
+    x1             0.0410916455991052    0.303130931693088    0.13555741530432     0.895987010108527
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 2.53
+R-squared: 0.00262,  Adjusted R-Squared: -0.14
+F-statistic vs. constant model: 0.0184, p-value = 0.896
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                SE                 tStat                pValue      
+                   __________________    ________________    __________________    _________________
+
+    (Intercept)      16.9285598631794    11.9783775384553       1.4132598349678    0.207298132808763
+    x1             -0.417854661611324    1.00385297605914    -0.416250857024613    0.691705712332797
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 4.12
+R-squared: 0.0281,  Adjusted R-Squared: -0.134
+F-statistic vs. constant model: 0.173, p-value = 0.692
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat                pValue      
+                   _________________    _________________    _________________    __________________
+
+    (Intercept)      9.7865836177033     3.57911737093924     2.73435671519626    0.0291547020888753
+    x1             0.151490663139692    0.327630292615703    0.462382955892861     0.657835253875163
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 2.76
+R-squared: 0.0296,  Adjusted R-Squared: -0.109
+F-statistic vs. constant model: 0.214, p-value = 0.658
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat                pValue      
+                   _________________    _________________    _________________    __________________
+
+    (Intercept)     10.2615701813426     4.20705916227524     2.43913141829765    0.0448160264144077
+    x1             0.132911437291924    0.398452261929944    0.333569287944694     0.748473966977027
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 3.07
+R-squared: 0.0156,  Adjusted R-Squared: -0.125
+F-statistic vs. constant model: 0.111, p-value = 0.748
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                SE                  tStat                pValue      
+                   __________________    _________________    _________________    __________________
+
+    (Intercept)       11.038161641143     3.65845719461374     3.01716298810173    0.0194641467109142
+    x1             0.0497027821312952    0.337439678417369    0.147293828527833     0.887052780147701
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 3.04
+R-squared: 0.00309,  Adjusted R-Squared: -0.139
+F-statistic vs. constant model: 0.0217, p-value = 0.887
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                 SE                  tStat                pValue      
+                   ___________________    _________________    _________________    __________________
+
+    (Intercept)       12.5275863607196     6.20637668183122     2.01850242145201    0.0900871108474658
+    x1             -0.0876519547494714    0.546413387032594    -0.16041326371135     0.877820023415533
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 3.78
+R-squared: 0.00427,  Adjusted R-Squared: -0.162
+F-statistic vs. constant model: 0.0257, p-value = 0.878
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                 SE                  tStat                pValue      
+                   ___________________    _________________    _________________    __________________
+
+    (Intercept)       12.5275863607196     6.20637668183122     2.01850242145201    0.0900871108474658
+    x1             -0.0876519547494714    0.546413387032594    -0.16041326371135     0.877820023415533
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 3.78
+R-squared: 0.00427,  Adjusted R-Squared: -0.162
+F-statistic vs. constant model: 0.0257, p-value = 0.878
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                SE                 tStat                pValue      
+                   __________________    ________________    __________________    _________________
+
+    (Intercept)      24.3274423649474    12.7691694163823      1.90517030291229    0.115097188146266
+    x1             -0.973904869411371    1.06656295025393    -0.913124601955751    0.403059066160396
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.7
+R-squared: 0.143,  Adjusted R-Squared: -0.0285
+F-statistic vs. constant model: 0.834, p-value = 0.403
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat                pValue      
+                   _________________    _________________    _________________    __________________
+
+    (Intercept)     8.18295542376085     4.15538205621498     1.96924261429152    0.0895911427325511
+    x1             0.335759232426972    0.374578133918059    0.896366343958619     0.399832107445345
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 3.17
+R-squared: 0.103,  Adjusted R-Squared: -0.0252
+F-statistic vs. constant model: 0.803, p-value = 0.4
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)      9.7616038182054     5.36090167924465     1.82088842554203    0.111423408078533
+    x1             0.197952851902985    0.493738720072988    0.400926327742175    0.700430195011714
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 3.48
+R-squared: 0.0224,  Adjusted R-Squared: -0.117
+F-statistic vs. constant model: 0.161, p-value = 0.7
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.90337150195652     3.86697877784915     2.30241023120087    0.054796137213983
+    x1             0.276231326608352    0.337091569281246    0.819454865624016    0.439532131602665
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 3.01
+R-squared: 0.0875,  Adjusted R-Squared: -0.0428
+F-statistic vs. constant model: 0.672, p-value = 0.44
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat                pValue      
+                   _________________    _________________    _________________    __________________
+
+    (Intercept)     9.24817755890836     2.74860011292885     3.36468645089798    0.0120071614567745
+    x1             0.182666058295944    0.242294500304526    0.753900967897996     0.475498447959669
+
+
+Number of observations: 9, Error degrees of freedom: 7
+Root Mean Squared Error: 2.32
+R-squared: 0.0751,  Adjusted R-Squared: -0.057
+F-statistic vs. constant model: 0.568, p-value = 0.475
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.22250003793371     6.79589945439659     1.20992079019271    0.271810342212572
+    x1             0.309813123719806    0.607598138423532    0.509898079219999    0.628330388721671
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 3.62
+R-squared: 0.0415,  Adjusted R-Squared: -0.118
+F-statistic vs. constant model: 0.26, p-value = 0.628
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.22250003793371     6.79589945439659     1.20992079019271    0.271810342212572
+    x1             0.309813123719806    0.607598138423532    0.509898079219999    0.628330388721671
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 3.62
+R-squared: 0.0415,  Adjusted R-Squared: -0.118
+F-statistic vs. constant model: 0.26, p-value = 0.628
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate               SE                  tStat                pValue      
+                   ________________    _________________    _________________    __________________
+
+    (Intercept)    9.46779254843771     3.87497497484743     2.44331708201818    0.0502447412750369
+    x1             0.12308267398979    0.315972213722806    0.389536385303066     0.710330217866451
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 2.86
+R-squared: 0.0247,  Adjusted R-Squared: -0.138
+F-statistic vs. constant model: 0.152, p-value = 0.71
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                 SE                  tStat                pValue      
+                   ___________________    _________________    __________________    _________________
+
+    (Intercept)       12.4997951918958     6.83198479479102      1.82959938690528    0.141293250387422
+    x1             -0.0847049289540197    0.653604851209435    -0.129596542616355    0.903141195376794
+
+
+Number of observations: 6, Error degrees of freedom: 4
+Root Mean Squared Error: 4.62
+R-squared: 0.00418,  Adjusted R-Squared: -0.245
+F-statistic vs. constant model: 0.0168, p-value = 0.903
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat                 pValue      
+                   _________________    _________________    __________________    __________________
+
+    (Intercept)     10.9643432426816     3.07012165609919      3.57130578877861    0.0117656531335971
+    x1             0.017807801819162    0.252648821636617    0.0704844048106225      0.94609867799445
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 2.52
+R-squared: 0.000827,  Adjusted R-Squared: -0.166
+F-statistic vs. constant model: 0.00497, p-value = 0.946
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                        Estimate                 SE                  tStat                pValue      
+                   ___________________    _________________    __________________    _________________
+
+    (Intercept)       12.4997951918958     6.83198479479102      1.82959938690528    0.141293250387422
+    x1             -0.0847049289540197    0.653604851209435    -0.129596542616355    0.903141195376794
+
+
+Number of observations: 6, Error degrees of freedom: 4
+Root Mean Squared Error: 4.62
+R-squared: 0.00418,  Adjusted R-Squared: -0.245
+F-statistic vs. constant model: 0.0168, p-value = 0.903
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                tStat               pValue      
+                   _________________    ________________    ________________    _________________
+
+    (Intercept)     26.1452215595279    13.0859747135772    1.99795751801363    0.102205732770141
+    x1             -1.14402614964089    1.08962716024778    -1.0499244066023    0.341827006784566
+
+
+Number of observations: 7, Error degrees of freedom: 5
+Root Mean Squared Error: 3.77
+R-squared: 0.181,  Adjusted R-Squared: 0.0168
+F-statistic vs. constant model: 1.1, p-value = 0.342
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)      8.4458941293068     5.02788522205754     1.67981044838779     0.14399604355904
+    x1             0.248174231884371    0.442203653710569    0.561221576985896    0.594970057769184
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 2.81
+R-squared: 0.0499,  Adjusted R-Squared: -0.108
+F-statistic vs. constant model: 0.315, p-value = 0.595
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.22250003793371     6.79589945439659     1.20992079019271    0.271810342212572
+    x1             0.309813123719806    0.607598138423532    0.509898079219999    0.628330388721671
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 3.62
+R-squared: 0.0415,  Adjusted R-Squared: -0.118
+F-statistic vs. constant model: 0.26, p-value = 0.628
+
+lm2 = 
+
+
+Linear regression model:
+    y ~ 1 + x1
+
+Estimated Coefficients:
+                       Estimate                SE                  tStat               pValue      
+                   _________________    _________________    _________________    _________________
+
+    (Intercept)     8.22250003793371     6.79589945439659     1.20992079019271    0.271810342212572
+    x1             0.309813123719806    0.607598138423532    0.509898079219999    0.628330388721671
+
+
+Number of observations: 8, Error degrees of freedom: 6
+Root Mean Squared Error: 3.62
+R-squared: 0.0415,  Adjusted R-Squared: -0.118
+F-statistic vs. constant model: 0.26, p-value = 0.628

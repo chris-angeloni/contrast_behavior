@@ -1,5 +1,8 @@
 function [res,r,ops] = run_offset(spikeData,sessionData,ops)
 
+sig_cells = ops.sig_neurons;
+resFile = ops.resFile;
+
 % get neurons in the psychometric task that have good waveforms
 included_cells = ops.include & contains(spikeData.cellinfo(:,end),'offset');
 spikes = spikeData.spikes(included_cells);
@@ -7,7 +10,7 @@ cellInfo = spikeData.cellinfo(included_cells,:);
 
 
 %% SINGLE NEURONS
-if ~exist(fullfile(ops.resDir,'res_offset.mat'),'file')
+if ~exist(fullfile(ops.resDir,resFile),'file')
     
 
     % first run analysis of single neurons
@@ -118,14 +121,14 @@ if ~exist(fullfile(ops.resDir,'res_offset.mat'),'file')
     end
     
     % save
-    save(fullfile(ops.resDir,'res_offset.mat'),'res','ops','-v7.3');
+    save(fullfile(ops.resDir,resFile),'res','ops','-v7.3');
     
 else
     
     fprintf('Found res file... loading ...\n');
     
     % load
-    load(fullfile(ops.resDir,'res_offset.mat'));
+    load(fullfile(ops.resDir,resFile));
     
 end
 
@@ -148,8 +151,14 @@ if ~isfield(res,'pop')
     i = 0;
     for sess = 1:length(s)
         
-        % index the cells in this session
-        cellI = [cellInfo{:,2}] == s(sess).sessionID;
+        % cells to include       
+        cellI = ([cellInfo{:,2}] == s(sess).sessionID)';
+        if sig_cells
+            fprintf('POPULATION RESULTS USING ONLY SIG NEURONS\n');
+            cellI = cellI & sigCells;
+            plot_sig = 'sig_';
+        end
+        ops.sig_neurons = sig_cells;
         
         % if there are 3 or more cells in this session
         if sum(cellI) >= 3
@@ -258,13 +267,13 @@ if ~isfield(res,'pop')
             res.pop(i).auc_sig = pauc_sig;
             res.pop(i).projection = normp;
             res.pop(i).mean_auc = mean(...
-                cat(3,res.single_cell(cellI'&sigCells).auc),3);
+                cat(3,res.single_cell(cellI&sigCells).auc),3);
             res.pop(i).mean_fr = mean(...
-                cat(3,res.single_cell(cellI'&sigCells).fr),3);
+                cat(3,res.single_cell(cellI&sigCells).fr),3);
             res.pop(i).mean_critp = mean(...
-                cat(3,res.single_cell(cellI'&sigCells).critp),3);
+                cat(3,res.single_cell(cellI&sigCells).critp),3);
             res.pop(i).mean_critp_adj = mean(...
-                cat(3,res.single_cell(cellI'&sigCells).critp_adj),3);
+                cat(3,res.single_cell(cellI&sigCells).critp_adj),3);
             res.pop(i).snr = s(sess).SNR;
             res.pop(i).offs = s(sess).offsets;
             res.pop(i).sessID = s(sess).sessionID;
@@ -292,12 +301,18 @@ if ~isfield(res,'pop')
 
     save(fullfile(ops.resDir,'res_offset.mat'),'res','ops','-v7.3');
     
+else
+    
+    load(fullfile(ops.resDir,resFile));
+    
 end
 
 
 
 %% summary stats
 if ~exist('r','var')
+    
+    fprintf('Post-processing...\n');
 
     % restructure to match different offset times, first get unique
     % offsets
@@ -358,6 +373,9 @@ if ~exist('r','var')
     % save formatted data and new options
     save(fullfile(ops.resDir,'res_offset.mat'),'res','r','ops','-v7.3');
 
+else
+    load(fullfile(ops.resDir,resFile));
+    
 end
 
 

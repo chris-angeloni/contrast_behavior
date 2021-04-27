@@ -21,7 +21,8 @@ bad_mouse1 = (contains(r.mouse,'CA121') & r.contrastI==1);
 % ~bad_mouse1 & sig_auc_thresh > 1 & r.fa < .25; <- good svm tau results/badfdr
 % ~bad_mouse1 & sig_auc_thresh > 2 & r.fa < .5; <- good critp tau/fdr
 % ~bad_mouse1 & sig_auc_thresh > 2 & r.fa < .25; <- all tau ns/good fdr
-include = ~bad_mouse1 & sig_auc_thresh > 2 & r.fa < .5;
+% ~bad_mouse1 & sig_auc_thresh > 3 & r.fa < .2; <- okay for sig decoders
+include = ~bad_mouse1 & sig_auc_thresh > 3 & r.fa < .2;
 
 % format sessions as strings
 r.session = cellstr(num2str(r.sessionID));
