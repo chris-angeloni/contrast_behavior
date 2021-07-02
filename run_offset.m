@@ -299,7 +299,7 @@ if ~isfield(res,'pop')
         
     end
 
-    save(fullfile(ops.resDir,'res_offset.mat'),'res','ops','-v7.3');
+    save(fullfile(ops.resDir,resFile),'res','ops','-v7.3');
     
 else
     
@@ -371,7 +371,7 @@ if ~exist('r','var')
     r.fa = mean(r.(fields{1})(:,1,:),[2 3],'omitnan');
 
     % save formatted data and new options
-    save(fullfile(ops.resDir,'res_offset.mat'),'res','r','ops','-v7.3');
+    save(fullfile(ops.resDir,resFile),'res','r','ops','-v7.3');
 
 else
     load(fullfile(ops.resDir,resFile));

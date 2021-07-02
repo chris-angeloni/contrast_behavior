@@ -1,7 +1,9 @@
 function res = plot_psych_summaries(r,ops)
 
+clear res;
+
 %% plot stuff
-nrows = 4; ncols = 6;
+nrows = 5; ncols = 6;
 col = {'b','r'};
 col_rgb = [0 0 1; 1 0 0];
 col_lite = {[.7 .7 1],[1 .7 .7]};
@@ -39,9 +41,13 @@ include = ~badMouse;
 
 
 %% AVERAGES
+
+% create figures
 f2 = figure(121212); clf;
-sz = [1200 900];
+sz = [1200 1100];
 set(f2,'Position',[0 0 sz]);
+
+
 
 % precompute behavioral psych curves
 subplot(nrows,ncols,1); hold on;
@@ -65,7 +71,7 @@ xlabel('Target Volume (dB SNR)');
 
 % for the remaining fields
 for j = 2:length(fields)
-        
+    
     subplot(nrows,ncols,j); hold on;
     plot(xl,[.5 .5],'k--');
 
@@ -115,6 +121,17 @@ end
 ylim([0 1]); xlim(xl); xlabel('Target Volume (dB SNR)');
 ylabel('% Significant Neurons');
 
+% get sessions with matched volumes
+for i = 1:length(r.vols_nn)
+    % check if length is good
+    ind = ~isnan(r.beh_rate_adj(i,2:end));
+    if sum(ind,2) == 6
+        matchSess(i,1) = all(r.vols_nn(i,ind) == [0 5 10 15 20 25],2);
+    else
+        matchSess(i,1) = false;
+    end
+end
+
 
 
 
@@ -126,15 +143,17 @@ grpvar = 'mouse';
 % exclude CA121 in high contrast, include sessions with more than 3
 % significant population responses to different volumes, include
 % sessions with false alarm rates > .20
-% other include:  ~badMouse & sum(r.auc_sig,2,'omitnan')>3 &
-% r.beh_rate_adj(:,1) < .2;
-% stat = 'mean';
-include = ~badMouse & ...
-          sum(r.auc_sig,2,'omitnan')>3 & ...
-          r.beh_rate_adj(:,1) < .3;
-stat = 'median'; %'mean';
+% include:  
+include = ~badMouse & sum(r.auc_sig,2,'omitnan')>3 & r.beh_rate_adj(:,1) < .3;
+stat = 'mean';
+%include = ~badMouse & ...
+%          sum(r.auc_sig,2,'omitnan')>3 & ...
+%          r.beh_rate_adj(:,1) < .3;
+% stat = 'median'; %'mean';
 % ~any(thresh_all < -10,2) & ...
 % grpvar = 'sessionID';
+
+statcnt = 0;
 for k = 2:length(fields)
     
     contr = r.contrastI(include);
@@ -148,9 +167,12 @@ for k = 2:length(fields)
     [y,g] = grpstats(beh,{grps,contr},{stat,'gname'});
     g = g(:,1);
     
+    figure(f2);
     subplot(nrows,ncols,6+k); hold on
-    plot([0 22.5],[0 22.5],'k');
+    plot([0 20],[0 20],'k');
 
+    
+    %%
     % linear model for all data
     [b,pv,xp,yp,ypci,lm] = fitlmWrapper(x,y);
     plotlmWrapper(xp,yp,ypci);
@@ -169,14 +191,10 @@ for k = 2:length(fields)
     res.(fields{k}).stats(1).test = 'fitlm';
     res.(fields{k}).stats(1).p = pv;
     res.(fields{k}).stats(1).stats = lm;
+    res.(fields{k}).stats(1).n = numel(x);
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_thresh_lm-all_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm
-    diary off;
     
+    %% 
     % linear model for low contrast only
     [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
 
@@ -185,14 +203,11 @@ for k = 2:length(fields)
     res.(fields{k}).stats(2).test = 'fitlm';
     res.(fields{k}).stats(2).p = pv1;
     res.(fields{k}).stats(2).stats = lm1;
+    res.(fields{k}).stats(2).n = sum(ci==1);
+
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_thresh_lm-lo_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm1
-    diary off;
     
+    %%
     % linear model for high contrast only
     [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
     
@@ -201,34 +216,47 @@ for k = 2:length(fields)
     res.(fields{k}).stats(3).test = 'fitlm';
     res.(fields{k}).stats(3).p = pv2;
     res.(fields{k}).stats(3).stats = lm2;
+    res.(fields{k}).stats(3).n = sum(ci==2);
+
     title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
                   b(2),b(1),pv,pv1,pv2));
     drawnow;
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_thresh_lm-hi_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm2
-    diary off;
-    
+
+    %%
     % n way anova for unmatched data
     data = [x;y];
     measure = [ones(size(x)); ones(size(y))*2];
     contrast = [ci;ci];
-    [pv3 tbl] = anovan(data,{measure,contrast},...
-                     'model','interaction',...
-                     'varnames',{'threshold measure','contrast'},...
-                     'display','off');
+    [pv3 tbl stats] = anovan(data,{measure,contrast},...
+                             'model','interaction',...
+                             'varnames',{'threshold measure','contrast'},...
+                             'display','off');
     res.(fields{k}).stats(4).type = 'two way anova of contrast x threshold';
     res.(fields{k}).stats(4).test = 'anovan';
     res.(fields{k}).stats(4).p = pv3;
     res.(fields{k}).stats(4).stats = tbl;
+    res.(fields{k}).stats(4).n = numel(x);
+    res.(fields{k}).stats(4).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(4).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(4).eta2.interaction = tbl{4,2} / tbl{6,2};
+    [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
+    res.(fields{k}).stats(4).multcomp(1).comps = m;
+    res.(fields{k}).stats(4).multcomp(1).means = c;
+    res.(fields{k}).stats(4).multcomp(1).gnames = gnames;
+    [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
+    res.(fields{k}).stats(4).multcomp(2).comps = m;
+    res.(fields{k}).stats(4).multcomp(2).means = c;
+    res.(fields{k}).stats(4).multcomp(2).gnames = gnames;
     
-    % save anova table
-    fn = sprintf('./_data/_stats/psych_thresh_anovan_%s.txt', ...
-                 fields{k});
-    writecell(tbl,fn);    
+    %%
+    % linear model with contrast predictor
+    X = [x ci];
+    lm = fitlm(X,y,'linear');
+    res.(fields{k}).stats(5).type = 'beh_thresh = neural_thresh + contrast';
+    res.(fields{k}).stats(5).test = 'fitlm';
+    res.(fields{k}).stats(5).stats = lm;
+    res.(fields{k}).stats(5).n = numel(x);
     
 end
 
@@ -252,6 +280,8 @@ for k = 2:length(fields)
     subplot(nrows,ncols,12+k); hold on
     plot(lims,lims,'k');
 
+    
+    %%
     % linear model for all data
     [b,pv,xp,yp,ypci,lm] = fitlmWrapper(x,y);
     plotlmWrapper(xp,yp,ypci);
@@ -266,83 +296,129 @@ for k = 2:length(fields)
     plotPrefs; axis tight;
     
     % save stats for linear model
-    res.(fields{k}).stats(1).type = 'slope linear model all data points';
-    res.(fields{k}).stats(1).test = 'fitlm';
-    res.(fields{k}).stats(1).p = pv;
-    res.(fields{k}).stats(1).stats = lm;
+    res.(fields{k}).stats(6).type = 'slope linear model all data points';
+    res.(fields{k}).stats(6).test = 'fitlm';
+    res.(fields{k}).stats(6).p = pv;
+    res.(fields{k}).stats(6).stats = lm;
+    res.(fields{k}).stats(6).n = numel(x);
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_slope_lm-all_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm
-    diary off;
-    
+
+    %%
     % linear model for low contrast only
     [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
 
     % save stats for linear model
-    res.(fields{k}).stats(2).type = 'slope linear model low contrast';
-    res.(fields{k}).stats(2).test = 'fitlm';
-    res.(fields{k}).stats(2).p = pv1;
-    res.(fields{k}).stats(2).stats = lm1;
+    res.(fields{k}).stats(7).type = 'slope linear model low contrast';
+    res.(fields{k}).stats(7).test = 'fitlm';
+    res.(fields{k}).stats(7).p = pv1;
+    res.(fields{k}).stats(7).stats = lm1;
+    res.(fields{k}).stats(7).n = sum(ci==1);
+
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_slope_lm-lo_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm1
-    diary off;
-    
+
+    %%
     % linear model for high contrast only
     [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
     
     % save stats for linear model
-    res.(fields{k}).stats(3).type = 'slope linear model high contrast';
-    res.(fields{k}).stats(3).test = 'fitlm';
-    res.(fields{k}).stats(3).p = pv2;
-    res.(fields{k}).stats(3).stats = lm2;
+    res.(fields{k}).stats(8).type = 'slope linear model high contrast';
+    res.(fields{k}).stats(8).test = 'fitlm';
+    res.(fields{k}).stats(8).p = pv2;
+    res.(fields{k}).stats(8).stats = lm2;
+    res.(fields{k}).stats(8).n = sum(ci==2);
     title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
                   b(2),b(1),pv,pv1,pv2));
     drawnow;
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_slope_lm-hi_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm2
-    diary off;
     
-
-    
-    % format data for rmanova
-    ug = unique(g);
-    dat = nan(length(ug),2,2);
-    for i = 1:length(ug)
-        for j = 1:2
-            ind = find(contains(g,ug{i}) & ci == j);
-            if ~isempty(ind)
-                dat(i,j,:) = [y(ind) x(ind)];
-            end
-        end
-    end
-    
+    %%
+    % n-way anova
     data = [x;y];
     measure = [ones(size(x)); ones(size(y))*2];
     contrast = [ci;ci];
-    [pv3 tbl] = anovan(data,{measure,contrast},...
-                     'model','interaction',...
-                     'varnames',{'threshold measure','contrast'},...
-                     'display','off');
-    res.(fields{k}).stats(4).type = 'two way anova of contrast x slope';
-    res.(fields{k}).stats(4).test = 'anovan';
-    res.(fields{k}).stats(4).p = pv3;
-    res.(fields{k}).stats(4).stats = tbl;
+    [pv3 tbl stats] = anovan(data,{measure,contrast},...
+                             'model','interaction',...
+                             'varnames',{'slope measure','contrast'},...
+                             'display','off');
+    res.(fields{k}).stats(9).type = 'two way anova of contrast x slope';
+    res.(fields{k}).stats(9).test = 'anovan';
+    res.(fields{k}).stats(9).p = pv3;
+    res.(fields{k}).stats(9).stats = tbl; 
+    res.(fields{k}).stats(9).n = numel(x);
+    res.(fields{k}).stats(9).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(9).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(9).eta2.interaction = tbl{4,2} / tbl{6,2};
+    [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
+    res.(fields{k}).stats(9).multcomp(1).comps = m;
+    res.(fields{k}).stats(9).multcomp(1).means = c;
+    res.(fields{k}).stats(9).multcomp(1).gnames = gnames;
+    [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
+    res.(fields{k}).stats(9).multcomp(2).comps = m;
+    res.(fields{k}).stats(9).multcomp(2).means = c;
+    res.(fields{k}).stats(9).multcomp(2).gnames = gnames;
     
-    % save anova table
-    fn = sprintf('./_data/_stats/psych_anovan_slope_%s.txt', ...
-                 fields{k});
-    writecell(tbl,fn);    
+    
+    %%
+    % linear model with contrast predictor
+    X = [x ci];
+    lm = fitlm(X,y,'linear');
+    res.(fields{k}).stats(10).type = 'beh_slope = neural_slope + contrast';
+    res.(fields{k}).stats(10).test = 'fitlm';
+    res.(fields{k}).stats(10).stats = lm;
+    res.(fields{k}).stats(10).n = numel(x);
+    
+    
+    %% n-way anova only for mice with matched targets
+    % set up mice
+    ind = matchSess;
+    contr = r.contrastI(ind);
+    beh = r.beh_rate_adj_PC_fit.max_slope(ind);
+    neural = r.([fields{k} '_fit']).max_slope(ind);
+    grps = r.(grpvar)(ind);
+    
+    ci = grpstats(contr,{grps,contr},'mean')+1;
+    cv = col_rgb(ci,:);
+    x = grpstats(neural,{grps,contr},'mean');
+    [y,g,nn] = grpstats(beh,{grps,contr},{'mean','gname','numel'});
+    data = [x;y];
+    measure = [ones(size(x)); ones(size(y))*2];
+    contrast = [ci;ci];
+    [pv3 tbl stats] = anovan(data,{measure,contrast},...
+                             'model','interaction',...
+                             'varnames',{'slope measure','contrast'},...
+                             'display','off');    
+    res.(fields{k}).stats(11).type = ['two way anova of contrast x ' ...
+                        'slope with matched volumes'];
+    res.(fields{k}).stats(11).test = 'anovan';
+    res.(fields{k}).stats(11).p = pv3;
+    res.(fields{k}).stats(11).stats = tbl; 
+    res.(fields{k}).stats(11).n = numel(x);
+    res.(fields{k}).stats(11).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(11).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(11).eta2.interaction = tbl{4,2} / tbl{6,2};
+    [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
+    res.(fields{k}).stats(11).multcomp(1).comps = m;
+    res.(fields{k}).stats(11).multcomp(1).means = c;
+    res.(fields{k}).stats(11).multcomp(1).gnames = gnames;
+    [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
+    res.(fields{k}).stats(11).multcomp(2).comps = m;
+    res.(fields{k}).stats(11).multcomp(2).means = c;
+    res.(fields{k}).stats(11).multcomp(2).gnames = gnames;
+    
+    % plot
+    subplot(nrows,ncols,24+k); hold on
+    plot([.01 .055],[.01 .055],'k');
+    [b,pv,xp,yp,ypci,lm] = fitlmWrapper(x,y);
+    plotlmWrapper(xp,yp,ypci);
+    sh = scatter(x,y,20,cv);
+    sh.MarkerFaceColor = 'flat';
+    sh.MarkerEdgeColor = 'w';
+    xlim(lims); ylim(lims);
+    %set(gca,'xtick',[0 10 20]);
+    %set(gca,'ytick',[0 10 20]);
+    ylabel('Behavioral Slope (PC/dB)');
+    xlabel('Neural Slope (PC/dB)');
+    plotPrefs; axis tight;
     
 end
 
@@ -368,6 +444,8 @@ for k = 2:length(fields)
     subplot(nrows,ncols,18+k); hold on
     plot(lims,lims,'k');
 
+    
+    %%
     % linear model for all data
     [b,pv,xp,yp,ypci,lm] = fitlmWrapper(x,y);
     plotlmWrapper(xp,yp,ypci);
@@ -382,83 +460,76 @@ for k = 2:length(fields)
     plotPrefs; axis tight;
     
     % save stats for linear model
-    res.(fields{k}).stats(1).type = 'sensitivity linear model all data points';
-    res.(fields{k}).stats(1).test = 'fitlm';
-    res.(fields{k}).stats(1).p = pv;
-    res.(fields{k}).stats(1).stats = lm;
+    res.(fields{k}).stats(12).type = 'sensitivity linear model all data points';
+    res.(fields{k}).stats(12).test = 'fitlm';
+    res.(fields{k}).stats(12).p = pv;
+    res.(fields{k}).stats(12).stats = lm;
+    res.(fields{k}).stats(12).n = numel(x);
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_sensitivity_lm-all_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm
-    diary off;
     
+    %%
     % linear model for low contrast only
     [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
 
     % save stats for linear model
-    res.(fields{k}).stats(2).type = 'sensitivity linear model low contrast';
-    res.(fields{k}).stats(2).test = 'fitlm';
-    res.(fields{k}).stats(2).p = pv1;
-    res.(fields{k}).stats(2).stats = lm1;
+    res.(fields{k}).stats(13).type = 'sensitivity linear model low contrast';
+    res.(fields{k}).stats(13).test = 'fitlm';
+    res.(fields{k}).stats(13).p = pv1;
+    res.(fields{k}).stats(13).stats = lm1;
+    res.(fields{k}).stats(13).n = sum(ci==1);
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_sensitivity_lm-lo_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm1
-    diary off;
     
+    %%
     % linear model for high contrast only
     [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
     
     % save stats for linear model
-    res.(fields{k}).stats(3).type = 'sensitivity linear model high contrast';
-    res.(fields{k}).stats(3).test = 'fitlm';
-    res.(fields{k}).stats(3).p = pv2;
-    res.(fields{k}).stats(3).stats = lm2;
+    res.(fields{k}).stats(14).type = 'sensitivity linear model high contrast';
+    res.(fields{k}).stats(14).test = 'fitlm';
+    res.(fields{k}).stats(14).p = pv2;
+    res.(fields{k}).stats(14).stats = lm2;
+    res.(fields{k}).stats(14).n = sum(ci==2);
     title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
                   b(2),b(1),pv,pv1,pv2));
     drawnow;
     
-    % save model tables
-    fn = sprintf('./_data/_stats/psych_sensitivity_lm-hi_%s.txt', ...
-                 fields{k});
-    diary(fn);
-    lm2
-    diary off;
     
-
-    
+    %%
     % format data for rmanova
-    ug = unique(g);
-    dat = nan(length(ug),2,2);
-    for i = 1:length(ug)
-        for j = 1:2
-            ind = find(contains(g,ug{i}) & ci == j);
-            if ~isempty(ind)
-                dat(i,j,:) = [y(ind) x(ind)];
-            end
-        end
-    end
-    
     data = [x;y];
     measure = [ones(size(x)); ones(size(y))*2];
     contrast = [ci;ci];
-    [pv3 tbl] = anovan(data,{measure,contrast},...
-                     'model','interaction',...
-                     'varnames',{'threshold measure','contrast'},...
-                     'display','off');
-    res.(fields{k}).stats(4).type = 'two way anova of contrast x sensitivity';
-    res.(fields{k}).stats(4).test = 'anovan';
-    res.(fields{k}).stats(4).p = pv3;
-    res.(fields{k}).stats(4).stats = tbl;
+    [pv3 tbl stats] = anovan(data,{measure,contrast},...
+                             'model','interaction',...
+                             'varnames',{'threshold measure','contrast'},...
+                             'display','off');
+    res.(fields{k}).stats(15).type = 'two way anova of contrast x sensitivity';
+    res.(fields{k}).stats(15).test = 'anovan';
+    res.(fields{k}).stats(15).p = pv3;
+    res.(fields{k}).stats(15).stats = stats;
+    res.(fields{k}).stats(15).table = tbl;
+    res.(fields{k}).stats(15).n = numel(x);
+    res.(fields{k}).stats(15).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(15).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(15).eta2.interaction = tbl{4,2} / tbl{6, ...
+                        2};
+    [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
+    res.(fields{k}).stats(15).multcomp(1).comps = m;
+    res.(fields{k}).stats(15).multcomp(1).means = c;
+    res.(fields{k}).stats(15).multcomp(1).gnames = gnames;
+    [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
+    res.(fields{k}).stats(15).multcomp(2).comps = m;
+    res.(fields{k}).stats(15).multcomp(2).means = c;
+    res.(fields{k}).stats(15).multcomp(2).gnames = gnames;
     
-    % save anova table
-    fn = sprintf('./_data/_stats/psych_anovan_sensitivity_%s.txt', ...
-                 fields{k});
-    writecell(tbl,fn);    
+    %%
+    % linear model with contrast predictor
+    X = [x ci];
+    lm = fitlm(X,y,'linear');
+    res.(fields{k}).stats(16).type = 'beh_sense = neural_sense + contrast';
+    res.(fields{k}).stats(16).test = 'fitlm';
+    res.(fields{k}).stats(16).stats = lm;
+    res.(fields{k}).stats(16).n = numel(x);
     
 end
 
@@ -471,7 +542,7 @@ saveFigPDF(f2,sz,'./_plots/_psych_summary.pdf')
 
 %%
 % average curve for each mouse for each stat
-clear res;
+%clear res;
 uM = unique(r.mouse);
 for k = 1:length(fields)
     for i = 1:length(uM)
@@ -576,7 +647,7 @@ for i = 1:length(uM)
                          'color',col{j},'linewidth',.5);
                     xlim(xl); ylim([.4 1]); plotPrefs;
                     
-                   
+                    
                 end
             end
         end

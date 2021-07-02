@@ -15,6 +15,11 @@ function [projection cd wt] = trainCD(X,y,includeI,ops)
 %  y - index with the trial identity (0 = noise, >0 = target)
 %  includeI - trials to include in training/testing
 %  ops - ops struct
+%
+% ops.timeInd = logical index into time dimension of X, if X has
+%               3rd dim over which CD is averaged
+% ops.noiseLevel = value(s) in y to use for noise trials
+% ops.targetLevel = value(s) in y to use for target trials
 
 if isempty(includeI)
     includeI = ones(size(X,1),1);
@@ -22,7 +27,7 @@ end
 
 
 % setup target and noise indices
-noiseI = y == ops.noiseLevel & includeI;
+noiseI = ismember(y,ops.noiseLevel) & includeI;
 targetI = ismember(y,ops.targetLevel) & includeI;
 
 % set iteration count

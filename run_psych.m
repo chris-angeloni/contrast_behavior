@@ -206,7 +206,7 @@ if ~isfield(res,'pop')
             % performance per snr
             pauc = nan(1,length(uTrials)-1);
             pauc_pct = nan(length(uTrials)-1,2);
-            pauc_sig = nan(1,length(uTrials));
+            pauc_sig = nan(1,length(uTrials)-1);
             for j = 1:length(uTrials)
                 I = vols == uTrials(j);
                 
@@ -273,7 +273,7 @@ else
 end
 
 
-if ~exist('r','var');
+if ~exist('r','var');    
     
     fprintf('Post-processing (this can take a while)...\n');
 
@@ -291,6 +291,14 @@ if ~exist('r','var');
     for i = 1:length(res.pop)
         
         fprintf('\tSession %d/%d... ',i,length(res.pop)); tic;
+                
+        % fix auc sig with nan at the end
+        res.pop(i).auc_sig = res.pop(i).auc_sig(1:end-1);
+        if sum(~isnan(res.pop(i).auc_sig)) < 6
+            % if there is missing data, fill it with zeros
+            res.pop(i).auc_sig(isnan(res.pop(i).auc_sig)) = 0;
+        end
+        
         
         this_vol = round(res.pop(i).snr,3);
         volI = ismember(uVol,this_vol);
@@ -360,8 +368,7 @@ if ~exist('r','var');
             if ~isempty(yn)
                 mxslope = max(diff(yn)./diff(xn));
                 [prms,mdl,thresh,sense,~,~,thresh75] = ...
-                    fitLogGrid(xn,yn,[],[],[],.75,...
-                               lb,ub);
+                    fitLogGrid(xn,yn,[],[],[],.75);
                 
                 r.(fn).params(i,:) = prms;
                 r.(fn).threshold(i,1) = thresh;
@@ -375,11 +382,10 @@ if ~exist('r','var');
                 r.(fn).threshold_75(i,1) = nan;
                 r.(fn).max_slope(i,1) = nan;
             end
-                
-        end
             
-        toc;        
+        end
         
+        toc; 
         
     end
     
@@ -391,7 +397,8 @@ if ~exist('r','var');
         sI = ismember([sessionData.session.sessionID],r.sessionID(i));
         r.mouse{i,1} = sessionData.session(sI).mouse;
         r.contrastI(i,1) = strcmp(sessionData.session(sI).cond,'lohi');
-        
+        r.sess_vols(i,:) = res.pop(i).snr(2:end);
+        r.sess_sig_auc(i,:) = res.pop(i).auc_sig;
     end
 
     save(fullfile(ops.resDir,resFile),'res','ops','r','-v7.3');
