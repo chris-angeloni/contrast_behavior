@@ -30,49 +30,9 @@ end
 
 
 %% generate results for all values of muT
-resFile = './_functions/_regaincontrolmodel/discriminability_200922.mat';
+resFile = './_data/normative_model.mat';
 %resFile = 'discriminability.mat';
 
-
-if ~exist(resFile,'file');
-    %-------generate results from scratch--------%
-    fprintf('Simulating each volume... \n');
-    delete(gcp('nocreate')); 
-    parfor i=1:numel(muTlow)
-        fprintf('Volume = %d\n',muTlow(i));
-        res = varianceSims(muTlow(i),sigmaLow,sigmaHigh,f);
-        allres{i} = res;
-    end
-
-    %------------get discriminability------------%
-    D = [];
-    for i=1:numel(muTlow)
-        r = allres{i};
-        D  = [D, r.buffer.Dkl(:,1)];
-    end
-    
-    % compute auc from evoked rates
-    
-    save(resFile,'D','muTlow','f','sigmaLow','sigmaHigh');
-
-else
-    %-------------or load from file--------------%
-    p = load(resFile);
-    D = p.D;
-    
-    if strcmp(resFile,'discriminability.mat')
-        sigmaLow = 1;
-        sigmaHigh = 2;
-        f = .25;
-        muTlow = 0:.25:3;
-        indTarget = find(muTlow == 1.5);
-    else
-        sigmaLow = p.sigmaLow;
-        sigmaHigh = p.sigmaHigh;
-        f = p.f;
-    end
-    
-end
 
 %-----generate results for muTlow = 1.5------%
 [res,p] = varianceSims(muTlow(indTarget),sigmaLow,sigmaHigh,f);
@@ -83,8 +43,14 @@ plotFigs_CFA(res); drawnow;
 
 
 %% generate res for all means
-for i = 1:length(muTlow)
-    rr(i) = varianceSims(muTlow(i),sigmaLow,sigmaHigh,f);
+if ~exist(resFile)
+    fprintf('Simulating different target volumes...\n');
+    for i = 1:length(muTlow)
+        rr(i) = varianceSims(muTlow(i),sigmaLow,sigmaHigh,f);
+    end
+    save(resFile,'rr','-v7.3');
+else
+    load(resFile);
 end
 
 
@@ -166,22 +132,22 @@ end
 
 
 % fit curves to each psychometric function
+fprintf('Fitting model psychometric functions... '); tic;
 metrics = {'roc','dkl','doverlap','perf'};
 for m = 1:length(metrics)
     for i = 1:length(iT)
         for j = 1:2
             
-            disp([m i j]); tic;
             x = muTlow';
             eval(sprintf('y = squeeze(%s(:,i,j));',metrics{m}));
             [prms(m,i,j,:), mdl, thresh(m,i,j), sense(m,i,j), ~, ~,thresh75(m,i,j)] = ...
                 fitLogGrid(x,y,[],[],[],.75);
             slope(m,i,j) = max(diff(y)./diff(x));
-            toc;
             
         end
     end
 end
+toc;
 
             
 

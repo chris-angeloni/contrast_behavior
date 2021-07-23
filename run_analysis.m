@@ -25,6 +25,7 @@ include = [spikeData.cellinfo{:,8}]'>1 & wave_include;
 ops.include = include;
 
 %% Figure 1: run and plot the normative model simulations
+% (this takes 20-30 minutes)
 run_normative_model;
 
 
