@@ -1,5 +1,5 @@
 clear all; close all;
-addpath(genpath('~/chris-lab/code_general/'));
+%addpath(genpath('~/chris-lab/code_general/'));
 addpath(genpath('./_functions/'));
 
 %% setup
@@ -23,6 +23,9 @@ wave_include = ones(size(spikeData.cellinfo,1),1);
 wave_include(~isnan(vertcat(spikeData.waveform.FWHM))) = res_wave.include;
 include = [spikeData.cellinfo{:,8}]'>1 & wave_include;
 ops.include = include;
+
+%% Figure 1: run and plot the normative model simulations
+run_normative_model;
 
 
 %% Figure 3: run and plot behavior
@@ -200,59 +203,41 @@ stats_ln = plot_lnmodel_summaries(res_ln,res_psych,r_psych,ops)
 
 
 
+if 2+2 == 5
 
+    %% Figure 7: choice
 
+    % options
+    ops.resDir = './_data';
+    ops.bin = .005;
+    ops.baseline = [-.1 0];
+    ops.target = [0 .1];
+    ops.response = [.1 1];
+    ops.edges = ops.target(1)+ops.baseline(1) : ...
+        ops.bin : ...
+        ops.target(2)+ops.response(2)-ops.baseline(1);
+    ops.time = ops.edges(1:end-1) + mean(diff(ops.edges));
+    ops.timeStep = .05;
+    ops.timeWindow = ops.timeStep*2;
+    ops.timeCent = (-.1 + ops.timeWindow/2):ops.timeStep:...
+        (max(1) - ops.timeWindow/2);
+    ops.smooth = 2;
+    ops.timeInd = 1;
+    ops.include = include;
+    ops.sig_neurons = false;
+    ops.task = 'psychometric';
 
+    % results filename
+    ops.resFile = 'res_choice.mat';
 
+    % run
+    [res_choice,r_choice] = run_choice(spikeData,sessionData,ops);
 
+    % plot summary
+    stats_choice = plot_choice_summary(res_choice,res_ln,sessionData, ...
+                                       ops);
 
-
-%% Figure 6: choice
-
-% options
-ops.resDir = './_data';
-ops.bin = .005;
-ops.baseline = [-.1 0];
-ops.target = [0 .1];
-ops.response = [.1 1];
-ops.edges = ops.target(1)+ops.baseline(1) : ...
-    ops.bin : ...
-    ops.target(2)+ops.response(2)-ops.baseline(1);
-ops.time = ops.edges(1:end-1) + mean(diff(ops.edges));
-ops.timeStep = .025;
-ops.timeWindow = ops.timeStep*2;
-ops.timeCent = (-.1 + ops.timeWindow/2):ops.timeStep:...
-    (max(1) - ops.timeWindow/2);
-ops.smooth = 2;
-ops.timeInd = 1;
-ops.include = include;
-ops.sig_neurons = false;
-ops.task = 'psychometric';
-
-% results filename
-ops.resFile = 'res_choice.mat';
-
-% run
-[res_choice,r_choice] = run_choice(spikeData,sessionData,ops);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+end
 
 
 %% noise adaptation

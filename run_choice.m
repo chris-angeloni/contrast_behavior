@@ -3,68 +3,96 @@ function [res,r] = run_choice(spikeData,sessionData,ops)
 % function res = run_choice(spks,cellinfo,sessionData,ops)
 
 sig_cells = ops.sig_neurons;
-resFile = ops.resFile;
+resFile = fullfile(ops.resDir,ops.resFile);
 
 % get neurons in the task that have good waveforms
 included_cells = ops.include & contains(spikeData.cellinfo(:,end),ops.task);
 spikes = spikeData.spikes(included_cells);
 cellInfo = spikeData.cellinfo(included_cells,:);
 
-% reaction time analysis
-sI = contains({sessionData.session.task},'psychometric');
-s = sessionData.session(sI);
-b = sessionData.behavior(sI);
 
-for i = 1:numel(b)
+for c = 1:length(spikes)
     
-    % for each session, get reaction times for each volume
-    rtI = b(i).RT > .05 & b(i).RT < 1;
-    rt = b(i).RT(rtI);
-    tt = b(i).lickTT(rtI);
-    snrI = [0 1 2 3 4 5 6];
-    currentSNRS = ismember(snrI,tt);
-    RT(i,:) = nan(size(currentSNRS));
-    snr(i,:) = [-inf s(i).stimInfo.targetDBShift];
-    RT(i,currentSNRS) = grpstats(rt,tt);
-    snri(i,:) = snrI;
-    contrast(i) = contains(s(i).cond,'lohi');
+    fprintf('Neuron %d/%d: ',c,length(spikes)); tic;
+    fn = fullfile(ops.resDir,'_choice',[cellInfo{c,7} '.mat']);
     
-end
-cc = repmat(contrast',1,7);
-grpRT_mean = grpstats(RT(:),{snri(:),cc(:)},'mean');
-grpRT_sem = grpstats(RT(:),{snri(:),cc(:)},'sem');
-grps = grpstats([snri(:),cc(:)],{snri(:),cc(:)});
-grpSNR = grpstats(snr(:),{snri(:),cc(:)});
+    if ~exist(fn)
+        fprintf('computing cp... ');
+        
+        % find session info for this neuron
+        sI = find(cat(1,sessionData.session.sessionID) == cellInfo{c,2});
+        session = sessionData.session(sI);
+        events = sessionData.events(sI);
+        behavior = sessionData.behavior(sI);
+        
+        % compute PSTH relative to target onset
+        [PSTH,raster,trials] = makePSTH(spikes{c},events.targOn,ops.edges);
+        
+        
+        % index for hits and misses during target trials
+        hi = behavior.trialType(:,1) > 0 & behavior.response == 1;
+        mi = behavior.trialType(:,1) > 0 & behavior.response == 0;
+        
+        % clear
+        clear nhits nmiss cp cp_pct cp_sig;
+        
+        % choice probability
+        uVols = unique(behavior.trialType(behavior.trialType(:,1)>0,1));
+        for i = 1:length(uVols)
+            
+            hitI = behavior.trialType(:,1) == uVols(i) & hi;
+            missI = behavior.trialType(:,1) == uVols(i) & mi;
+            nhits(i) = sum(hitI);
+            nmiss(i) = sum(missI);
+            
+            % compute cp over time for each volume
+            for t = 1:length(ops.timeCent)
+                
+                % index
+                timeI = ops.time > ops.timeCent(t)-ops.timeWindow & ...
+                        ops.time <= ops.timeCent(t)+ops.timeWindow;
 
-color = {'b','r'};
-hold on
-for i = 1:2
-    x = grpSNR(grps(:,2)==(i-1));
-    ym = grpRT_mean(grps(:,2)==(i-1));
-    ye = grpRT_sem(grps(:,2)==(i-1));
-    errorbar(x(2) - mean(diff(x(2:end))),ym(1),ye(1),...
-             color{i},'linewidth',1,'marker','o');
-    errorbar(x(2:end),ym(2:end),ye(2:end),...
-             color{i},'linewidth',1,'marker','o');
-    
-end
-xlim([-7 27]); 
-ylabel('RT (s)'); xlabel('Target Volume (mean dB SNR)');
-plotPrefs;
-
-keyboard
-
-if ~exist(fullfile(ops.resDir,resFile),'file')
-    
-    % set up figure for internal use
-    fh = figure(1234); clf;
-    set(fh,'Visible','on');
-    
-
-    % first run analysis of single neurons
-    t0 = tic;
-    fprintf('CHOICE ANALYSIS: single neurons\n');
-    for i = 1:length(spikes)
+                
+                if sum(hitI) > 1 & sum(missI) > 1
+                    % average spike rate
+                    hit_spks = mean(PSTH(hitI,timeI),2);
+                    miss_spks = mean(PSTH(missI,timeI),2);
+                    
+                    [cp(i,t),~,~,~,cp_pct(i,t,:),~,~,cp_sig(i,t)] = ...
+                        bootROC(miss_spks,hit_spks,[],100);
+                else
+                    cp(i,t) = nan;
+                    cp_pct(i,t,:) = [nan nan];
+                    cp_sig(i,t) = false;
+                end
+            end
+            
+            
+        end
+        
+        % results
+        r.cellID = cellInfo{c,7};
+        r.cellInfo = cellInfo(c,:);
+        r.sessionID = cellInfo{c,2};
+        r.contrast = session.cond;
+        r.cp = cp;
+        r.cp_pct = cp_pct;
+        r.cp_sig = cp_sig;
+        save(fn,'r','ops');
+        
+    else
+        fprintf('file found, loading... ');
+        load(fn,'r');
+        
     end
+    
+    toc;
+    
+    res(c) = r;
+    
 end
+
+
+
+
 

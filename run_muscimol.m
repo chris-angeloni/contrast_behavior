@@ -1,8 +1,8 @@
 function stat = run_muscimol
 
 clear all; close all;
-addpath(genpath('~/gits/gain-gonogo/'));
-addpath(genpath('~/chris-lab/code_general/'));
+%addpath(genpath('~/gits/gain-gonogo/'));
+%addpath(genpath('~/chris-lab/code_general/'));
 addpath(genpath('./_functions/'));
 
 

@@ -1,6 +1,6 @@
 function res = run_behavior
 
-addpath(genpath('~/gits/gain-gonogo/_analysis/'));
+%addpath(genpath('~/gits/gain-gonogo/_analysis/'));
 
 %%%%%%%%
 %% SETUP
