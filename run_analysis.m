@@ -3,11 +3,13 @@ clear all; close all;
 addpath(genpath('./_functions/'));
 
 %% setup
+dataDir = './_data'; % location of data files
+
 % load all spike and session data
 fprintf('Loading spike data... '); tic;
-spikeData = load('~/data/gain_behavior/spikeData.mat'); toc;
+spikeData = load(fullfile(dataDir,'spikeData.mat')); toc;
 fprintf('Loading session data... '); tic;
-sessionData = load('~/data/gain_behavior/sessionData.mat'); toc;
+sessionData = load(fullfile(dataDir,'sessionData.mat')); toc;
 
 
 %% waveform analysis
@@ -25,19 +27,24 @@ include = [spikeData.cellinfo{:,8}]'>1 & wave_include;
 ops.include = include;
 
 %% Figure 1: run and plot the normative model simulations
-% (this takes 20-30 minutes)
+% (this takes 20-30 minutes the first time, several minutes after
+%  saving the initial simulatuion results)
 run_normative_model;
 
 
 %% Figure 3: run and plot behavior
+% (requires behavior folder: ~/gits/gain-gonogo/')
 stats_beh = run_behavior;
 
 
 %% Figure 4: run and plot muscimol results
+% (requires behavior folder: ~/gits/gain-gonogo/')
+% (this will take roughly 20 minutes first run, then ~5 min rerunning)
 stats_muscimol = run_muscimol;
 
 
 %% Figure 5: psych
+% (this will take quite a while the first time, several hours)
 
 % options
 ops.resDir = './_data';
@@ -53,13 +60,13 @@ ops.targetLevel = [5 6];
 ops.noiseLevel = [0];
 ops.smooth = 2;
 ops.timeInd = 1;
-ops.sig_neurons = true;
+ops.sig_neurons = false;
 
 % results filename
 if ops.sig_neurons
-    ops.resFile = 'res_psych_sigcells.mat';
+    ops.resFile = '_res_psych_sigcells.mat';
 else
-    ops.resFile = 'res_psych_allcells.mat';
+    ops.resFile = '_res_psych_allcells.mat';
 end
 
 % run
@@ -109,13 +116,13 @@ ops.noiseLevel = [0];
 ops.smooth = 2;
 ops.timeInd = 1;
 ops.include = include;
-ops.sig_neurons = false;
+ops.sig_neurons = true;
 
 % results filename
 if ops.sig_neurons
-    ops.resFile = 'res_offset_sigcells.mat';
+    ops.resFile = '_res_offset_sigcells.mat';
 else
-    ops.resFile = 'res_offset_allcells.mat';
+    ops.resFile = '_res_offset_allcells.mat';
 end
 
 % run
@@ -152,7 +159,7 @@ ops.modelStrings = {'Spike-Triggered Average',...
 ops.targetExclude = .05;
 ops.trialCutoff = 4.5 * ops.fs;
 ops.resDir = './_data';
-ops.resFile = 'res_lnmodel.mat';
+ops.resFile = '_res_lnmodel.mat';
 ops.fig_visible = 'off';
 
 % run

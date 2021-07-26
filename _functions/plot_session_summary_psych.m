@@ -130,9 +130,6 @@ xlim([-.1 1.2]); plotPrefs;
 title('Target Response Times');
 xlabel('Time (s from target onset)');
 
-keyboard
-
-
 
 
 

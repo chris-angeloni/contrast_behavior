@@ -27,16 +27,18 @@ ms = 4;
 
 for c = 1:ncells
         
-    % subplots
-    f1 = figure(1); clf;
-    
-    % make axes
-    for b = 1:2
-        ax(1+5*(b-1)) = subplot(5,4,[1 2 5 6]+2*(b-1));
-        ax(2+5*(b-1)) = subplot(5,4,[9 10]+2*(b-1));
-        ax(3+5*(b-1)) = subplot(5,4,[13 14]+2*(b-1));
-        ax(4+5*(b-1)) = subplot(5,4,17+2*(b-1));
-        ax(5+5*(b-1)) = subplot(5,4,18+2*(b-1));
+    if ~isempty(ops.cellPlot)
+        % subplots
+        f1 = figure(1); clf;
+         
+        % make axes
+        for b = 1:2
+            ax(1+5*(b-1)) = subplot(5,4,[1 2 5 6]+2*(b-1));
+            ax(2+5*(b-1)) = subplot(5,4,[9 10]+2*(b-1));
+            ax(3+5*(b-1)) = subplot(5,4,[13 14]+2*(b-1));
+            ax(4+5*(b-1)) = subplot(5,4,17+2*(b-1));
+            ax(5+5*(b-1)) = subplot(5,4,18+2*(b-1));
+        end
     end
         
     % for pre and post topical application blocks (block 1 is pre)
@@ -121,105 +123,108 @@ for c = 1:ncells
         
         
         
-     
-
         
-        %% plot
-        % for each contrast and level
-        for i = 1:2
-            for j = 1:7
-                axes(ax(1+axI)); hold on;
-                % plot color patch
-                I = [find(all(sort(:,1:2) == [i j-1],2),1,'first')-1 ...
-                     find(all(sort(:,1:2) == [i j-1],2),1,'last')];
-                ph = patch(repmat(ops.psthWindow(1),1,4) ./ [1 1 2 2],...
-                           [I fliplr(I)],cmap{i}(j,:),'EdgeAlpha', ...
-                           0);
-                % and line
-                plot([ops.psthWindow(1) ops.psthWindow(end)],[I(1) I(1)],...
-                     'Color',[.75 .75 .75],'LineWidth',.25);
-                if i==2 & j==1
+        if ~isempty(ops.cellPlot)
+            
+            %% plot
+            % for each contrast and level
+            for i = 1:2
+                for j = 1:7
+                    axes(ax(1+axI)); hold on;
+                    % plot color patch
+                    I = [find(all(sort(:,1:2) == [i j-1],2),1,'first')-1 ...
+                         find(all(sort(:,1:2) == [i j-1],2),1,'last')];
+                    ph = patch(repmat(ops.psthWindow(1),1,4) ./ [1 1 2 2],...
+                               [I fliplr(I)],cmap{i}(j,:),'EdgeAlpha', ...
+                               0);
+                    % and line
                     plot([ops.psthWindow(1) ops.psthWindow(end)],[I(1) I(1)],...
-                         'k','LineWidth',.5);
+                         'Color',[.75 .75 .75],'LineWidth',.25);
+                    if i==2 & j==1
+                        plot([ops.psthWindow(1) ops.psthWindow(end)],[I(1) I(1)],...
+                             'k','LineWidth',.5);
+                    end
+                    xlim([ops.psthWindow(1) ops.psthWindow(end)]);
+                    
+                    % plot PSTH plots
+                    if i == 1
+                        axes(ax(2+axI)); hold on;
+                    else
+                        axes(ax(3+axI)); hold on;
+                    end
+                    plot(ops.psthTime,condTrace(:,i,j),'color', ...
+                         cmap{i}(j,:));
+                    ylabel('spks/s');
+                    axis tight; plotPrefs;
+                    xlim([ops.psthWindow(1) ops.psthWindow(end)]);
+
                 end
-                xlim([ops.psthWindow(1) ops.psthWindow(end)]);
                 
-                % plot PSTH plots
+                % mean FR per SNR
                 if i == 1
-                    axes(ax(2+axI)); hold on;
+                    axes(ax(4+axI)); hold on;
                 else
-                    axes(ax(3+axI)); hold on;
+                    axes(ax(5+axI)); hold on;
                 end
-                plot(ops.psthTime,condTrace(:,i,j),'color', ...
-                     cmap{i}(j,:));
-                ylabel('spks/s');
-                axis tight; plotPrefs;
-                xlim([ops.psthWindow(1) ops.psthWindow(end)]);
+                
+                plot(volTicks(2:end),squeeze(nanmean(condTarget(:,i,2:end))),...
+                     cc{i});
+                for j = 1:length(volTicks)
+                    eh = errorBars(volTicks(j),squeeze(condTarget(:,i,j)),...
+                                   cmap{i}(j,:));
+                    eh.Marker = 'o'; eh.MarkerSize = ms;
+                    eh.MarkerFaceColor = cmap{i}(j,:);
+                end
+                set(gca,'xtick',volTicks); set(gca,'xticklabels',volLabels);
+                xlabel('Target Volume (dB SNR)'); ylabel('spks/s');
+                axis tight;
+                YL(b,i,:) = get(gca,'YLim'); plotPrefs;
+                xlim([volTicks(1) - mean(diff(volTicks)) ...
+                      volTicks(end) + mean(diff(volTicks))]);
+                
 
             end
             
-            % mean FR per SNR
-            if i == 1
-                axes(ax(4+axI)); hold on;
-            else
-                axes(ax(5+axI)); hold on;
-            end
-                        
-            plot(volTicks(2:end),squeeze(nanmean(condTarget(:,i,2:end))),...
-                 cc{i});
-            for j = 1:length(volTicks)
-                eh = errorBars(volTicks(j),squeeze(condTarget(:,i,j)),...
-                               cmap{i}(j,:));
-                eh.Marker = 'o'; eh.MarkerSize = ms;
-                eh.MarkerFaceColor = cmap{i}(j,:);
-            end
-            set(gca,'xtick',volTicks); set(gca,'xticklabels',volLabels);
-            xlabel('Target Volume (dB SNR)'); ylabel('spks/s');
-            axis tight;
-            YL(b,i,:) = get(gca,'YLim'); plotPrefs;
-            xlim([volTicks(1) - mean(diff(volTicks)) ...
-                  volTicks(end) + mean(diff(volTicks))]);
-            
-
+            % plot cleanup
+            axes(ax(1+axI)); hold on;
+            plot([0 0],[0 length(stimInfo.order)],'k','LineWidth',.5);
+            scatter(raster,spikeI,10,'k.');
+            title(tStr);
+            axis tight; plotPrefs;
         end
         
-        % plot cleanup
-        axes(ax(1+axI)); hold on;
-        plot([0 0],[0 length(stimInfo.order)],'k','LineWidth',.5);
-        scatter(raster,spikeI,10,'k.');
-        title(tStr);
-        axis tight; plotPrefs;
+    end
+       
+    if ~isempty(ops.cellPlot)
+        % match trace plot lims
+        tr = [res(c).condTrace{:}];
+        ymt = [min(tr(:)) max(tr(:))];
+        if ymt(2) == 0; ymt(2) = 1; end;
+        set(ax(2),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
+        set(ax(3),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
+        set(ax(7),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
+        set(ax(8),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
         
+        % match volume function plots limits
+        ym = [min(YL(:)) max(YL(:))];
+        if ym(2) == 0; ym(2) = 1; end;
+        set(ax(4),'Ylim',ym);
+        set(ax(5),'Ylim',ym);
+        set(ax(9),'Ylim',ym);
+        set(ax(10),'Ylim',ym);
+        
+        % add zero lines at appropriate ylim
+        for i = 2:3
+            axes(ax(i)); hold on; plot([0 0],ylim,'k');
+            axes(ax(i+5)); hold on; plot([0 0],ylim,'k');
+        end
+        
+        fn = fullfile(ops.cellPlot,...
+                      sprintf('%s-cell%d-%s_%s.pdf',...
+                              ops.mouse,clustID,clustLabel, ...
+                              ops.condShort));
+        saveFigPDF(f1,[400 600],fn);
     end
-                
-    % match trace plot lims
-    tr = [res(c).condTrace{:}];
-    ymt = [min(tr(:)) max(tr(:))];
-    if ymt(2) == 0; ymt(2) = 1; end;
-    set(ax(2),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
-    set(ax(3),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
-    set(ax(7),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
-    set(ax(8),'Ylim',ymt,'XLim',[ops.psthWindow(1) ops.psthWindow(end)]);
-    
-    % match volume function plots limits
-    ym = [min(YL(:)) max(YL(:))];
-    if ym(2) == 0; ym(2) = 1; end;
-    set(ax(4),'Ylim',ym);
-    set(ax(5),'Ylim',ym);
-    set(ax(9),'Ylim',ym);
-    set(ax(10),'Ylim',ym);
-    
-    % add zero lines at appropriate ylim
-    for i = 2:3
-        axes(ax(i)); hold on; plot([0 0],ylim,'k');
-        axes(ax(i+5)); hold on; plot([0 0],ylim,'k');
-    end
-    
-    fn = fullfile(ops.cellPlot,...
-                  sprintf('%s-cell%d-%s_%s.pdf',...
-                          ops.mouse,clustID,clustLabel, ...
-                          ops.condShort));
-    saveFigPDF(f1,[400 600],fn);
     
 end
 

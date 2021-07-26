@@ -1,5 +1,7 @@
 function [res,r] = run_psych(spikeData,sessionData,ops)
 
+warning off
+
 % function res = run_psych(spks,cellinfo,sessionData,ops)
 sig_cells = ops.sig_neurons;
 resFile = ops.resFile;
@@ -292,12 +294,12 @@ if ~exist('r','var');
         
         fprintf('\tSession %d/%d... ',i,length(res.pop)); tic;
                 
-        % fix auc sig with nan at the end
-        res.pop(i).auc_sig = res.pop(i).auc_sig(1:end-1);
-        if sum(~isnan(res.pop(i).auc_sig)) < 6
-            % if there is missing data, fill it with zeros
-            res.pop(i).auc_sig(isnan(res.pop(i).auc_sig)) = 0;
-        end
+%          % fix auc sig with nan at the end
+%          res.pop(i).auc_sig = res.pop(i).auc_sig(1:end-1);
+%          if sum(~isnan(res.pop(i).auc_sig)) < 6
+%              % if there is missing data, fill it with zeros
+%              res.pop(i).auc_sig(isnan(res.pop(i).auc_sig)) = 0;
+%          end
         
         
         this_vol = round(res.pop(i).snr,3);

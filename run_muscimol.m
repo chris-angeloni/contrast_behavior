@@ -1,6 +1,5 @@
 function stat = run_muscimol
 
-clear all; close all;
 %addpath(genpath('~/gits/gain-gonogo/'));
 %addpath(genpath('~/chris-lab/code_general/'));
 addpath(genpath('./_functions/'));
@@ -597,18 +596,32 @@ ax(2) = subplot(nrows,ncols,2);
 ax(3) = subplot(nrows,ncols,3);
 ax(4) = subplot(nrows,ncols,4);
 
+% load cortical data
+load(fullfile(datDir,'muscimolCortexData.mat'));
 
-% compare effects over different sessions
+
+% run saline, then muscimol single cell analysis
 order = [2 1]; clear targMean targMeanPre targAUC
+if ~exist(fullfile(datDir,'_res_cortex_muscimol.mat'))
+    for i = 1:length(order)
+        
+        I = order(i);
+        % run single cell analysis
+        tic;
+        [~,rr{i}] = muscimol_res(musc_ctx_data(I));
+        toc;
+    end
+    
+    save(fullfile(datDir,'_res_cortex_muscimol.mat'),'rr');
+else
+    load(fullfile(datDir,'_res_cortex_muscimol.mat'));
+end
+
+% plot results
 for i = 1:length(order)
     
-    I = order(i);
-    
-    % load data
-    clear res;
-    fn = fullfile(resDir,...
-                  sprintf('%s_%s.mat',mList{I},condShort{I}));
-    load(fn)
+    I = order(i);  
+    res = rr{i};
     
     % for each cell
     for c = 1:length(res)
@@ -834,40 +847,40 @@ snrs = mean(m.mean_snr);
 linestyle = {'--','-'};
 facecolor = {'none','k'};
 
-f3 = figure(3); clf;
-% for each mouse, plot the mean and fit in each condition
-uM = unique(m.mouse); uC = unique(m.condition);
-for i = 1:length(uM)
-    
-    subplot(2,1,i); hold on;
-    
-    for j = 1:length(uC)
-    
-        I = contains(m.mouse,uM{i}) & contains(m.condition,uC{j});
-        
-        % plot data
-        errorbar(snrs,mean(m.mean_rate(I,2:end)),sem(m.mean_rate(I,2:end)),...
-                 'color','k','linestyle','none','MarkerFaceColor',facecolor{j},...
-                 'MarkerSize',ms,'Marker','o');
-        errorbar(-90,mean(m.mean_rate(I,1)),sem(m.mean_rate(I,1)),...
-                 'color','k','linestyle','none','MarkerFaceColor',facecolor{j},...
-                 'MarkerSize',ms,'Marker','o');
-        
-        % fit the data
-        x = m.mean_snr(I,:); y = m.mean_rate(I,2:end);
-        [prms,mdl,thresh] = fitLogGrid(x(:),y(:));
-        xf = linspace(min(snrs),max(snrs),100);
-        plot(xf,mdl(prms,xf),'k','LineStyle',linestyle{j});
-        xlabel(sprintf('Target Attenuation\n(dB rel. 25dB SNR)'));
-        ylabel('Response Rate');
-        set(gca,'xtick',-90:15:0);
-        set(gca,'xticklabels',num2str([-inf; snrs']));
-        plotPrefs;
-        
-    end
-end
-
-saveFigPDF(f3,[180 350],'./_plots/_muscimol_control_mouse_avg.pdf');
+%  f3 = figure(3); clf;
+%  % for each mouse, plot the mean and fit in each condition
+%  uM = unique(m.mouse); uC = unique(m.condition);
+%  for i = 1:length(uM)
+%      
+%      subplot(2,1,i); hold on;
+%      
+%      for j = 1:length(uC)
+%      
+%          I = contains(m.mouse,uM{i}) & contains(m.condition,uC{j});
+%          
+%          % plot data
+%          errorbar(snrs,mean(m.mean_rate(I,2:end)),sem(m.mean_rate(I,2:end)),...
+%                   'color','k','linestyle','none','MarkerFaceColor',facecolor{j},...
+%                   'MarkerSize',ms,'Marker','o');
+%          errorbar(-90,mean(m.mean_rate(I,1)),sem(m.mean_rate(I,1)),...
+%                   'color','k','linestyle','none','MarkerFaceColor',facecolor{j},...
+%                   'MarkerSize',ms,'Marker','o');
+%          
+%          % fit the data
+%          x = m.mean_snr(I,:); y = m.mean_rate(I,2:end);
+%          [prms,mdl,thresh] = fitLogGrid(x(:),y(:));
+%          xf = linspace(min(snrs),max(snrs),100);
+%          plot(xf,mdl(prms,xf),'k','LineStyle',linestyle{j});
+%          xlabel(sprintf('Target Attenuation\n(dB rel. 25dB SNR)'));
+%          ylabel('Response Rate');
+%          set(gca,'xtick',-90:15:0);
+%          set(gca,'xticklabels',num2str([-inf; snrs']));
+%          plotPrefs;
+%          
+%      end
+%  end
+%  
+%  saveFigPDF(f3,[180 350],'./_plots/_muscimol_control_mouse_avg.pdf');
 
 
 

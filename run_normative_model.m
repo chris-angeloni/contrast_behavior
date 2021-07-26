@@ -42,7 +42,7 @@ plotFigs_CFA(res); drawnow;
 
 
 
-%% generate res for all means
+%% generate res for all target means
 if ~exist(resFile)
     fprintf('Simulating different target volumes...\n');
     for i = 1:length(muTlow)
@@ -50,6 +50,7 @@ if ~exist(resFile)
     end
     save(resFile,'rr','-v7.3');
 else
+    fprintf('Loading simulation results...\n');
     load(resFile);
 end
 
@@ -163,122 +164,6 @@ tcolors{2} = [linspace(.8,0,length(tI))'...
 mmarks = linspace(.25,3,length(muTlow));
 g = squeeze(mean(gain,[1 2]));
 
-for m = 1:length(metrics)
-    
-    fig(m) = figure(m); clf;
-    
-    % plot time markers
-    subplot(5,2,1); hold on;
-    for i = 1:length(tI)
-        plot([times(tI(i)) times(tI(i))], [.5 1],'color',tcolors{1}(i,:),...
-             'linewidth',1);
-        plot([times(tI(i)) times(tI(i))], [1.5 2],'color',tcolors{2}(i,:),...
-             'linewidth',1);
-    end
-    xlabel('Time (samples)'); xlim([-1 26]); plotPrefs;
-    
-    % plot volume markers
-    subplot(5,2,2); hold on;
-    for i = 1:length(muTlow)
-        plot([muTlow(i) muTlow(i)], [.5 1],'color',tcolors{1}(end,:),...
-             'linewidth',mmarks(i));
-        plot([muTlow(i) muTlow(i)], [1.5 2],'color',tcolors{2}(end,:),...
-             'linewidth',mmarks(i));
-    end
-    xlabel('Volume'); xlim([-.25 3.25]); plotPrefs;
-    
-    
-    % extract measure
-    eval(sprintf('D = %s;',metrics{m}));
-    
-    % limits
-    ylims = [floor(min(D(:))*10)/10 ceil(max(D(:))*10)/10];
-    
-    % plot psych curves
-    subplot(5,2,[3 4 5 6]); hold on
-    for i = 1:length(tI)
-        plot(muTlow,squeeze(D(:,tI(i),1)),'color',tcolors{1}(i,:));
-    end
-    for i = 1:length(tI)
-        plot(muTlow,squeeze(D(:,tI(i),2)),'color',tcolors{2}(i,:));
-    end
-    xlabel('Volume'); ylabel(sprintf('D_{%s}',metrics{m})); ylim(ylims);
-    plotPrefs;
-    
-    % plot time curves
-    s = subplot(5,2,[7 9]); hold on
-    for i = 1:length(muTlow)
-        plot(times(tI),squeeze(D(i,tI,1)),'color',tcolors{1}(end,:),...
-             'linewidth',mmarks(i));
-        plot(times(tI),squeeze(D(i,tI,2)),'color',tcolors{2}(end,:),...
-             'linewidth',mmarks(i));
-    end
-    xlabel('Time'); ylabel(sprintf('D_{%s}',metrics{m})); ylim(ylims);
-    %s.Position(3) = s.Position(3) / 2;
-    plotPrefs;
-    
-    subplot(5,2,[8]); hold on;
-    plot(g(:,1),squeeze(sense(m,:,1)),'r');
-    plot(g(:,2),squeeze(sense(m,:,2)),'b');
-    xlabel('Gain'); ylabel('Sensitivity'); plotPrefs;
-    
-    subplot(5,2,[10]); hold on;
-    plot(g(:,1),squeeze(slope(m,:,1)),'r');
-    plot(g(:,2),squeeze(slope(m,:,2)),'b');
-    xlabel('Gain'); ylabel('Slope'); plotPrefs;
-    
-    fn = sprintf('./_plots/model_gain_%s.pdf',metrics{m});
-    saveFigPDF(fig(m),[550 1000],fn);
-    
-
-end
-
-
-
-        
-    
-    
-
-    
-    
-
-
-
-
-
-%% plot dependence on target (new figs)
-
-%  %generate colormap
-%  cw = [1,1,1];
-%  cr = [1,0,0];
-%  cb = [0,0,1];
-%  cRL = [];cBL = [];
-%  for i=1:15
-%      cRL = [cRL;cw+(cr-cw)*i./(numel(muTlow)+3)];
-%      cBL = [cBL;cw+(cb-cw)*i./(numel(muTlow)+3)];
-%  end
-
-
-
-%  %plot discriminability over time
-%  f1 = figure(1); clf; hold on; 
-%  for i=1:numel(muTlow)
-%      subplot(1,2,1);hold on;plot(-5:50,[D(95:100,i);D(1:50,  i)],'linewidth',2,'color',cBL(i+2,:));
-%      subplot(1,2,2);hold on;plot(-5:50,[D(45:50, i);D(51:100,i)],'linewidth',2,'color',cRL(i+2,:));
-%  end
-%  subplot(1,2,1);
-%  xlabel('time after switch from high to low');
-%  ylabel('discriminability');
-%  xlim([-5,50]);ylim([.5,.9])
-%  plotPrefs;
-%  
-%  subplot(1,2,2);
-%  xlabel('time after switch from high to low');
-%  ylabel('discriminability');
-%  xlim([-5,50]);ylim([.5,.9])
-%  set(gcf,'color','w','Position',[200 200 1200 400])
-%  plotPrefs;
-%  saveFigPDF(f1,[900 300],'./_plots/_offCurvesdMu.pdf');
 
 % colors
 cols = [1 0 0; 0 0 1];
@@ -669,6 +554,125 @@ saveFigPDF(f13,[900 450],'./_plots/target_noise_dist_dt.pdf');
 %          
 %  end
 %  saveFigPDF(f11,[800 700],'./_plots/_discriminabilityDTperMu_norminv.pdf');
+
+
+
+%  for m = 1:length(metrics)
+%      
+%      fig(m) = figure(m); clf;
+%      
+%      % plot time markers
+%      subplot(5,2,1); hold on;
+%      for i = 1:length(tI)
+%          plot([times(tI(i)) times(tI(i))], [.5 1],'color',tcolors{1}(i,:),...
+%               'linewidth',1);
+%          plot([times(tI(i)) times(tI(i))], [1.5 2],'color',tcolors{2}(i,:),...
+%               'linewidth',1);
+%      end
+%      xlabel('Time (samples)'); xlim([-1 26]); plotPrefs;
+%      
+%      % plot volume markers
+%      subplot(5,2,2); hold on;
+%      for i = 1:length(muTlow)
+%          plot([muTlow(i) muTlow(i)], [.5 1],'color',tcolors{1}(end,:),...
+%               'linewidth',mmarks(i));
+%          plot([muTlow(i) muTlow(i)], [1.5 2],'color',tcolors{2}(end,:),...
+%               'linewidth',mmarks(i));
+%      end
+%      xlabel('Volume'); xlim([-.25 3.25]); plotPrefs;
+%      
+%      
+%      % extract measure
+%      eval(sprintf('D = %s;',metrics{m}));
+%      
+%      % limits
+%      ylims = [floor(min(D(:))*10)/10 ceil(max(D(:))*10)/10];
+%      
+%      % plot psych curves
+%      subplot(5,2,[3 4 5 6]); hold on
+%      for i = 1:length(tI)
+%          plot(muTlow,squeeze(D(:,tI(i),1)),'color',tcolors{1}(i,:));
+%      end
+%      for i = 1:length(tI)
+%          plot(muTlow,squeeze(D(:,tI(i),2)),'color',tcolors{2}(i,:));
+%      end
+%      xlabel('Volume'); ylabel(sprintf('D_{%s}',metrics{m})); ylim(ylims);
+%      plotPrefs;
+%      
+%      % plot time curves
+%      s = subplot(5,2,[7 9]); hold on
+%      for i = 1:length(muTlow)
+%          plot(times(tI),squeeze(D(i,tI,1)),'color',tcolors{1}(end,:),...
+%               'linewidth',mmarks(i));
+%          plot(times(tI),squeeze(D(i,tI,2)),'color',tcolors{2}(end,:),...
+%               'linewidth',mmarks(i));
+%      end
+%      xlabel('Time'); ylabel(sprintf('D_{%s}',metrics{m})); ylim(ylims);
+%      %s.Position(3) = s.Position(3) / 2;
+%      plotPrefs;
+%      
+%      subplot(5,2,[8]); hold on;
+%      plot(g(:,1),squeeze(sense(m,:,1)),'r');
+%      plot(g(:,2),squeeze(sense(m,:,2)),'b');
+%      xlabel('Gain'); ylabel('Sensitivity'); plotPrefs;
+%      
+%      subplot(5,2,[10]); hold on;
+%      plot(g(:,1),squeeze(slope(m,:,1)),'r');
+%      plot(g(:,2),squeeze(slope(m,:,2)),'b');
+%      xlabel('Gain'); ylabel('Slope'); plotPrefs;
+%      
+%      fn = sprintf('./_plots/model_gain_%s.pdf',metrics{m});
+%      saveFigPDF(fig(m),[550 1000],fn);
+%      
+%  
+%  end
+
+
+
+        
+    
+    
+
+    
+    
+
+
+
+
+
+%% plot dependence on target (new figs)
+
+%  %generate colormap
+%  cw = [1,1,1];
+%  cr = [1,0,0];
+%  cb = [0,0,1];
+%  cRL = [];cBL = [];
+%  for i=1:15
+%      cRL = [cRL;cw+(cr-cw)*i./(numel(muTlow)+3)];
+%      cBL = [cBL;cw+(cb-cw)*i./(numel(muTlow)+3)];
+%  end
+
+
+
+%  %plot discriminability over time
+%  f1 = figure(1); clf; hold on; 
+%  for i=1:numel(muTlow)
+%      subplot(1,2,1);hold on;plot(-5:50,[D(95:100,i);D(1:50,  i)],'linewidth',2,'color',cBL(i+2,:));
+%      subplot(1,2,2);hold on;plot(-5:50,[D(45:50, i);D(51:100,i)],'linewidth',2,'color',cRL(i+2,:));
+%  end
+%  subplot(1,2,1);
+%  xlabel('time after switch from high to low');
+%  ylabel('discriminability');
+%  xlim([-5,50]);ylim([.5,.9])
+%  plotPrefs;
+%  
+%  subplot(1,2,2);
+%  xlabel('time after switch from high to low');
+%  ylabel('discriminability');
+%  xlim([-5,50]);ylim([.5,.9])
+%  set(gcf,'color','w','Position',[200 200 1200 400])
+%  plotPrefs;
+%  saveFigPDF(f1,[900 300],'./_plots/_offCurvesdMu.pdf');
 
 
 

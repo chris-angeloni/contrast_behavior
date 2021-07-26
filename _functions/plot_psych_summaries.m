@@ -142,7 +142,7 @@ grpvar = 'mouse';
 
 % exclude CA121 in high contrast, include sessions with more than 3
 % significant population responses to different volumes, include
-% sessions with false alarm rates > .20
+% sessions with false alarm rates < .3
 % include:  
 include = ~badMouse & sum(r.auc_sig,2,'omitnan')>3 & r.beh_rate_adj(:,1) < .3;
 stat = 'mean';
