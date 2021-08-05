@@ -847,9 +847,12 @@ snrs = mean(m.mean_snr);
 linestyle = {'--','-'};
 facecolor = {'none','k'};
 
+% unique mice and conditions
+uM = unique(m.mouse); uC = unique(m.condition);
+
 %  f3 = figure(3); clf;
 %  % for each mouse, plot the mean and fit in each condition
-%  uM = unique(m.mouse); uC = unique(m.condition);
+% 
 %  for i = 1:length(uM)
 %      
 %      subplot(2,1,i); hold on;

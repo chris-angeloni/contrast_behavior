@@ -1,7 +1,5 @@
 function [res,r] = run_psych(spikeData,sessionData,ops)
 
-warning off
-
 % function res = run_psych(spks,cellinfo,sessionData,ops)
 sig_cells = ops.sig_neurons;
 resFile = ops.resFile;
@@ -11,14 +9,15 @@ included_cells = ops.include & contains(spikeData.cellinfo(:,end),'psychometric'
 spikes = spikeData.spikes(included_cells);
 cellInfo = spikeData.cellinfo(included_cells,:);
 
+%a = load('/Users/chris/chris-lab/projects/contrast_behavior/_data_back/res_psych_sigcells.mat');
+
 
 %% SINGLE NEURONS
 if ~exist(fullfile(ops.resDir,resFile),'file')
     
     % set up figure for internal use
     fh = figure(1234); clf;
-    set(fh,'Visible','on');
-    
+    set(fh,'Visible','on');  
 
     % first run analysis of single neurons
     t0 = tic;
@@ -58,8 +57,9 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
                 ndist = t_spikes(I);
             else
                 sdist = t_spikes(I);
-                [auc(j-1),~,~,~,auc_pct(j-1,:)] = bootROC(ndist,sdist,[],500);
+                [auc(j-1),~,~,~,auc_pct(j-1,:),~,~,asig] = bootROC(ndist,sdist,[],500);
                 auc_sig(j-1) = ~(.5 >= auc_pct(j-1,1) & .5 <= auc_pct(j-1,2));
+            
             end
             
         end
@@ -86,7 +86,8 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
         xlabel('Cell'); ylabel('Time (s)');
         xlim([0 length(spikes)]);
         title('run_psych.m progress');
-        drawnow;
+        drawnow;        
+        
         
         % save results
         res.single_cell(i).cellID = cellInfo{i,7};
@@ -117,6 +118,13 @@ else
     % load res file
     load(fullfile(ops.resDir,resFile));
     
+end
+
+% use frozen auc percentiles for stable significance over multiple runs
+tmp = load('./_data/psych_sig_cells.mat');
+for i = 1:length(res.single_cell)
+    res.single_cell(i).auc_pct = tmp.auc_pct{i};
+    res.single_cell(i).sig = tmp.auc_sig{i};
 end
 
 
@@ -208,7 +216,7 @@ if ~isfield(res,'pop')
             % performance per snr
             pauc = nan(1,length(uTrials)-1);
             pauc_pct = nan(length(uTrials)-1,2);
-            pauc_sig = nan(1,length(uTrials)-1);
+            pauc_sig = nan(1,length(uTrials));
             for j = 1:length(uTrials)
                 I = vols == uTrials(j);
                 
@@ -274,8 +282,15 @@ else
     
 end
 
+% use frozen population auc percentiles for stable significance
+% values over multiple runs
+tmp = load('./_data/psych_sig_cells.mat');
+for i = 1:length(res.pop)
+    res.pop(i).auc_pc = tmp.pop_auc_pct{i};
+    res.pop(i).auc_sig = tmp.pop_auc_sig{i};
+end
 
-if ~exist('r','var');    
+if ~exist('r','var');
     
     fprintf('Post-processing (this can take a while)...\n');
 
@@ -293,14 +308,6 @@ if ~exist('r','var');
     for i = 1:length(res.pop)
         
         fprintf('\tSession %d/%d... ',i,length(res.pop)); tic;
-                
-%          % fix auc sig with nan at the end
-%          res.pop(i).auc_sig = res.pop(i).auc_sig(1:end-1);
-%          if sum(~isnan(res.pop(i).auc_sig)) < 6
-%              % if there is missing data, fill it with zeros
-%              res.pop(i).auc_sig(isnan(res.pop(i).auc_sig)) = 0;
-%          end
-        
         
         this_vol = round(res.pop(i).snr,3);
         volI = ismember(uVol,this_vol);
@@ -370,7 +377,8 @@ if ~exist('r','var');
             if ~isempty(yn)
                 mxslope = max(diff(yn)./diff(xn));
                 [prms,mdl,thresh,sense,~,~,thresh75] = ...
-                    fitLogGrid(xn,yn,[],[],[],.75);
+                    fitLogGrid(xn,yn,[],[],[],.75,...
+                               lb,ub);
                 
                 r.(fn).params(i,:) = prms;
                 r.(fn).threshold(i,1) = thresh;
@@ -384,10 +392,11 @@ if ~exist('r','var');
                 r.(fn).threshold_75(i,1) = nan;
                 r.(fn).max_slope(i,1) = nan;
             end
-            
+                
         end
+            
+        toc;        
         
-        toc; 
         
     end
     
@@ -399,8 +408,7 @@ if ~exist('r','var');
         sI = ismember([sessionData.session.sessionID],r.sessionID(i));
         r.mouse{i,1} = sessionData.session(sI).mouse;
         r.contrastI(i,1) = strcmp(sessionData.session(sI).cond,'lohi');
-        r.sess_vols(i,:) = res.pop(i).snr(2:end);
-        r.sess_sig_auc(i,:) = res.pop(i).auc_sig;
+        
     end
 
     save(fullfile(ops.resDir,resFile),'res','ops','r','-v7.3');

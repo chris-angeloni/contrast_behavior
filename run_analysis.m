@@ -11,6 +11,10 @@ spikeData = load(fullfile(dataDir,'spikeData.mat')); toc;
 fprintf('Loading session data... '); tic;
 sessionData = load(fullfile(dataDir,'sessionData.mat')); toc;
 
+% set the seed
+ops.seed = 1989;
+rng(ops.seed);
+
 
 %% waveform analysis
 res_wave = run_wave(spikeData);
@@ -60,14 +64,8 @@ ops.targetLevel = [5 6];
 ops.noiseLevel = [0];
 ops.smooth = 2;
 ops.timeInd = 1;
-ops.sig_neurons = false;
-
-% results filename
-if ops.sig_neurons
-    ops.resFile = '_res_psych_sigcells.mat';
-else
-    ops.resFile = '_res_psych_allcells.mat';
-end
+ops.sig_neurons = true;
+ops.resFile = '_res_psych.mat';
 
 % run
 [res_psych,r_psych] = run_psych(spikeData,sessionData,ops);
@@ -116,14 +114,8 @@ ops.noiseLevel = [0];
 ops.smooth = 2;
 ops.timeInd = 1;
 ops.include = include;
-ops.sig_neurons = true;
-
-% results filename
-if ops.sig_neurons
-    ops.resFile = '_res_offset_sigcells.mat';
-else
-    ops.resFile = '_res_offset_allcells.mat';
-end
+ops.sig_neurons = false;
+ops.resFile = '_res_offset.mat';
 
 % run
 [res_off,r_off] = run_offset(spikeData,sessionData,ops);
@@ -138,6 +130,7 @@ plot_single_cell_offset(...
 
 
 %% figure 6: LN model
+% (fitting each cell takes some time... ~2-3 days for the initial run)
 
 % model options
 ops.bin = .025;

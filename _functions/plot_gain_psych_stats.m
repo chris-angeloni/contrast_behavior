@@ -68,10 +68,10 @@ incl = fa < facut;
 %
 % mixed effects model of threshold using contrast,gain as fixed
 % effects, mouse ID as random effect (TARGET)
-formula = 'thresh ~ 1 + contrast + gain_target + (1|mouse)';
+formula = 'thresh ~ contrast + gain_target + (contrast-1|mouse)';
 lme = fitlme(t(incl,:),formula);
-lme_contrast = fitlme(t(incl,:),'thresh ~ 1 + contrast + (1|mouse)');
-lme_gain = fitlme(t(incl,:),'thresh ~ 1 + gain_target + (1|mouse)');
+lme_contrast = fitlme(t(incl,:),'thresh ~ contrast + (contrast-1|mouse)');
+lme_gain = fitlme(t(incl,:),'thresh ~ gain_target + (contrast-1|mouse)');
 
 subplot(nrows,ncols,1);
 scatter(t.gain_target(incl),t.thresh(incl),40,cv(incl,:),'.');
@@ -96,10 +96,10 @@ stat(statcnt).mdlcomp_gain = compare(lme_gain,lme);
 %
 % mixed effects model of slope using contrast,gain as fixed
 % effects, mouse ID as random effect (TARGET)
-formula = 'slope ~ 1 + contrast + gain_target + (1|mouse)';
+formula = 'slope ~ 1 + contrast + gain_target + (contrast-1|mouse)';
 lme = fitlme(t(incl,:),formula);
-lme_contrast = fitlme(t(incl,:),'slope ~ 1 + contrast + (1|mouse)');
-lme_gain = fitlme(t(incl,:),'slope ~ 1 + gain_target + (1|mouse)');
+lme_contrast = fitlme(t(incl,:),'slope ~ 1 + contrast + (contrast-1|mouse)');
+lme_gain = fitlme(t(incl,:),'slope ~ 1 + gain_target + (contrast-1|mouse)');
 
 subplot(nrows,ncols,2);
 scatter(t.gain_target(incl),t.slope(incl),40,cv(incl,:),'.');
@@ -132,10 +132,10 @@ stat(statcnt).mdlcomp_gain = compare(lme_gain,lme);
 %
 % mixed effects model of threshold using contrast,gain as fixed
 % effects, mouse ID as random effect (ADAPTATION)
-formula = 'thresh ~ 1 + contrast + gain_adapt + (1|mouse)';
+formula = 'thresh ~ 1 + contrast + gain_adapt + (contrast-1|mouse)';
 lme = fitlme(t(incl,:),formula);
-lme_contrast = fitlme(t(incl,:),'thresh ~ 1 + contrast + (1|mouse)');
-lme_gain = fitlme(t(incl,:),'thresh ~ 1 + gain_adapt + (1|mouse)');
+lme_contrast = fitlme(t(incl,:),'thresh ~ 1 + contrast + (contrast-1|mouse)');
+lme_gain = fitlme(t(incl,:),'thresh ~ 1 + gain_adapt + (contrast-1|mouse)');
 
 subplot(nrows,ncols,5);
 scatter(t.gain_adapt(incl),t.thresh(incl),40,cva(incl,:),'.');
@@ -162,10 +162,10 @@ stat(statcnt).mdlcomp_gain = compare(lme_gain,lme);
 %
 % mixed effects model of slope using contrast,gain as fixed
 % effects, mouse ID as random effect (ADAPTATION)
-formula = 'slope ~ 1 + contrast + gain_adapt + (1|mouse)';
+formula = 'slope ~ 1 + contrast + gain_adapt + (contrast-1|mouse)';
 lme = fitlme(t(incl,:),formula);
-lme_contrast = fitlme(t(incl,:),'slope ~ 1 + contrast + (1|mouse)');
-lme_gain = fitlme(t(incl,:),'slope ~ 1 + gain_adapt + (1|mouse)');
+lme_contrast = fitlme(t(incl,:),'slope ~ 1 + contrast + (contrast-1|mouse)');
+lme_gain = fitlme(t(incl,:),'slope ~ 1 + gain_adapt + (contrast-1|mouse)');
 
 subplot(nrows,ncols,6);
 scatter(t.gain_adapt(incl),t.slope(incl),40,cva(incl,:),'.');

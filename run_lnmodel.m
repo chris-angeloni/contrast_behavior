@@ -99,6 +99,7 @@ for c = 1:length(spikes)
         end
 
         % preallocate and clear
+        clear res;
         for i = 1:length(models)
             res.(models{i}).y = nan(length(stim.index),1);
             res.(models{i}).yhat = nan(length(stim.index),1);

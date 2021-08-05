@@ -1,7 +1,7 @@
 function [stim,spec,y0,ops] = formatStimAndSpikes(spikes,events,stimInfo,behavior,ops,flag)
 
 % file
-specFile = fullfile('./_stimuli','session_spec',[stimInfo.IDsess '-spec.mat']);
+specFile = fullfile('./_data','_spectrograms',[stimInfo.IDsess '-spec.mat']);
 
 % spectrogram file isnt found, make it
 if ~exist(specFile,'file')

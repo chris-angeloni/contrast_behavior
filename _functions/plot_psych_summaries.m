@@ -193,35 +193,6 @@ for k = 2:length(fields)
     res.(fields{k}).stats(1).stats = lm;
     res.(fields{k}).stats(1).n = numel(x);
     
-    
-    %% 
-    % linear model for low contrast only
-    [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
-
-    % save stats for linear model
-    res.(fields{k}).stats(2).type = 'threshold linear model low contrast';
-    res.(fields{k}).stats(2).test = 'fitlm';
-    res.(fields{k}).stats(2).p = pv1;
-    res.(fields{k}).stats(2).stats = lm1;
-    res.(fields{k}).stats(2).n = sum(ci==1);
-
-    
-    
-    %%
-    % linear model for high contrast only
-    [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
-    
-    % save stats for linear model
-    res.(fields{k}).stats(3).type = 'threshold linear model high contrast';
-    res.(fields{k}).stats(3).test = 'fitlm';
-    res.(fields{k}).stats(3).p = pv2;
-    res.(fields{k}).stats(3).stats = lm2;
-    res.(fields{k}).stats(3).n = sum(ci==2);
-
-    title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
-                  b(2),b(1),pv,pv1,pv2));
-    drawnow;
-    
 
     %%
     % n way anova for unmatched data
@@ -232,38 +203,68 @@ for k = 2:length(fields)
                              'model','interaction',...
                              'varnames',{'threshold measure','contrast'},...
                              'display','off');
-    res.(fields{k}).stats(4).type = 'two way anova of contrast x threshold';
-    res.(fields{k}).stats(4).test = 'anovan';
-    res.(fields{k}).stats(4).p = pv3;
-    res.(fields{k}).stats(4).stats = tbl;
-    res.(fields{k}).stats(4).n = numel(x);
-    res.(fields{k}).stats(4).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
-    res.(fields{k}).stats(4).eta2.contrast = tbl{3,2} / tbl{6,2};
-    res.(fields{k}).stats(4).eta2.interaction = tbl{4,2} / tbl{6,2};
+    res.(fields{k}).stats(2).type = 'two way anova of contrast x threshold';
+    res.(fields{k}).stats(2).test = 'anovan';
+    res.(fields{k}).stats(2).p = pv3;
+    res.(fields{k}).stats(2).stats = tbl;
+    res.(fields{k}).stats(2).n = numel(x);
+    res.(fields{k}).stats(2).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(2).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(2).eta2.interaction = tbl{4,2} / tbl{6,2};
     [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
-    res.(fields{k}).stats(4).multcomp(1).comps = m;
-    res.(fields{k}).stats(4).multcomp(1).means = c;
-    res.(fields{k}).stats(4).multcomp(1).gnames = gnames;
+    res.(fields{k}).stats(2).multcomp(1).comps = m;
+    res.(fields{k}).stats(2).multcomp(1).means = c;
+    res.(fields{k}).stats(2).multcomp(1).gnames = gnames;
     [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
-    res.(fields{k}).stats(4).multcomp(2).comps = m;
-    res.(fields{k}).stats(4).multcomp(2).means = c;
-    res.(fields{k}).stats(4).multcomp(2).gnames = gnames;
+    res.(fields{k}).stats(2).multcomp(2).comps = m;
+    res.(fields{k}).stats(2).multcomp(2).means = c;
+    res.(fields{k}).stats(2).multcomp(2).gnames = gnames;
     
     %%
-    % linear model with contrast predictor
-    X = [x ci];
-    lm = fitlm(X,y,'linear');
-    res.(fields{k}).stats(5).type = 'beh_thresh = neural_thresh + contrast';
-    res.(fields{k}).stats(5).test = 'fitlm';
-    res.(fields{k}).stats(5).stats = lm;
-    res.(fields{k}).stats(5).n = numel(x);
+    % mixed effects model linear model with contrast predictor
+    t = table();
+    t.neural = x;
+    t.behavior = y;
+    t.contrast = ci;
+    t.mouse = g;
+    lme = fitlme(t,'behavior ~ neural + contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_neural = fitlme(t,'behavior ~ contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_contrast = fitlme(t,'behavior ~ neural + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    
+    res.(fields{k}).stats(3).type = ['beh_thresh = neural_thresh + ' ...
+                        'contrast + (contrast-1|mouse)'];
+    res.(fields{k}).stats(3).test = 'fitlme';
+    res.(fields{k}).stats(3).stats = lme;
+    res.(fields{k}).stats(3).coefficients = lme.Coefficients;
+    res.(fields{k}).stats(3).n = numel(x);
+    res.(fields{k}).stats(3).mdlcomp_no_neural = ...
+        compare(lme_no_neural,lme);
+    res.(fields{k}).stats(3).mdlcomp_no_contrast = ...
+        compare(lme_no_contrast,lme);
+    
+    if (2 + 2) == 5
+        X = [x ci];
+        lm = fitlm(X,y,'linear');
+        res.(fields{k}).stats(3).type = 'beh_thresh = neural_thresh + contrast';
+        res.(fields{k}).stats(3).test = 'fitlm';
+        res.(fields{k}).stats(3).stats = lm;
+        res.(fields{k}).stats(3).n = numel(x);
+    end
+    
+    title(sprintf('p_{neural} = %04.3f\np_{contrast} = %04.3f',...
+                  res.(fields{k}).stats(3).mdlcomp_no_neural.pValue(2),...
+                  res.(fields{k}).stats(3).mdlcomp_no_contrast.pValue(2)));
+    drawnow;
     
 end
 
 
 
 %% SLOPES
-lims = [.025 .1];
+lims = [.025 .15];
 for k = 2:length(fields)
     
     contr = r.contrastI(include);
@@ -296,39 +297,11 @@ for k = 2:length(fields)
     plotPrefs; axis tight;
     
     % save stats for linear model
-    res.(fields{k}).stats(6).type = 'slope linear model all data points';
-    res.(fields{k}).stats(6).test = 'fitlm';
-    res.(fields{k}).stats(6).p = pv;
-    res.(fields{k}).stats(6).stats = lm;
-    res.(fields{k}).stats(6).n = numel(x);
-    
-
-    %%
-    % linear model for low contrast only
-    [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
-
-    % save stats for linear model
-    res.(fields{k}).stats(7).type = 'slope linear model low contrast';
-    res.(fields{k}).stats(7).test = 'fitlm';
-    res.(fields{k}).stats(7).p = pv1;
-    res.(fields{k}).stats(7).stats = lm1;
-    res.(fields{k}).stats(7).n = sum(ci==1);
-
-    
-
-    %%
-    % linear model for high contrast only
-    [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
-    
-    % save stats for linear model
-    res.(fields{k}).stats(8).type = 'slope linear model high contrast';
-    res.(fields{k}).stats(8).test = 'fitlm';
-    res.(fields{k}).stats(8).p = pv2;
-    res.(fields{k}).stats(8).stats = lm2;
-    res.(fields{k}).stats(8).n = sum(ci==2);
-    title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
-                  b(2),b(1),pv,pv1,pv2));
-    drawnow;
+    res.(fields{k}).stats(4).type = 'slope linear model all data points';
+    res.(fields{k}).stats(4).test = 'fitlm';
+    res.(fields{k}).stats(4).p = pv;
+    res.(fields{k}).stats(4).stats = lm;
+    res.(fields{k}).stats(4).n = numel(x);
     
     
     %%
@@ -340,32 +313,62 @@ for k = 2:length(fields)
                              'model','interaction',...
                              'varnames',{'slope measure','contrast'},...
                              'display','off');
-    res.(fields{k}).stats(9).type = 'two way anova of contrast x slope';
-    res.(fields{k}).stats(9).test = 'anovan';
-    res.(fields{k}).stats(9).p = pv3;
-    res.(fields{k}).stats(9).stats = tbl; 
-    res.(fields{k}).stats(9).n = numel(x);
-    res.(fields{k}).stats(9).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
-    res.(fields{k}).stats(9).eta2.contrast = tbl{3,2} / tbl{6,2};
-    res.(fields{k}).stats(9).eta2.interaction = tbl{4,2} / tbl{6,2};
+    res.(fields{k}).stats(5).type = 'two way anova of contrast x slope';
+    res.(fields{k}).stats(5).test = 'anovan';
+    res.(fields{k}).stats(5).p = pv3;
+    res.(fields{k}).stats(5).stats = tbl; 
+    res.(fields{k}).stats(5).n = numel(x);
+    res.(fields{k}).stats(5).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(5).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(5).eta2.interaction = tbl{4,2} / tbl{6,2};
     [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
-    res.(fields{k}).stats(9).multcomp(1).comps = m;
-    res.(fields{k}).stats(9).multcomp(1).means = c;
-    res.(fields{k}).stats(9).multcomp(1).gnames = gnames;
+    res.(fields{k}).stats(5).multcomp(1).comps = m;
+    res.(fields{k}).stats(5).multcomp(1).means = c;
+    res.(fields{k}).stats(5).multcomp(1).gnames = gnames;
     [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
-    res.(fields{k}).stats(9).multcomp(2).comps = m;
-    res.(fields{k}).stats(9).multcomp(2).means = c;
-    res.(fields{k}).stats(9).multcomp(2).gnames = gnames;
+    res.(fields{k}).stats(5).multcomp(2).comps = m;
+    res.(fields{k}).stats(5).multcomp(2).means = c;
+    res.(fields{k}).stats(5).multcomp(2).gnames = gnames;
     
     
     %%
-    % linear model with contrast predictor
-    X = [x ci];
-    lm = fitlm(X,y,'linear');
-    res.(fields{k}).stats(10).type = 'beh_slope = neural_slope + contrast';
-    res.(fields{k}).stats(10).test = 'fitlm';
-    res.(fields{k}).stats(10).stats = lm;
-    res.(fields{k}).stats(10).n = numel(x);
+    % mixed effects model linear model with contrast predictor
+    t = table();
+    t.neural = x;
+    t.behavior = y;
+    t.contrast = ci;
+    t.mouse = g;
+    lme = fitlme(t,'behavior ~ neural + contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_neural = fitlme(t,'behavior ~ contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_contrast = fitlme(t,'behavior ~ neural + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    
+    res.(fields{k}).stats(6).type = ['beh_slope = neural_slope + ' ...
+                        'contrast + (contrast-1|mouse)'];
+    res.(fields{k}).stats(6).test = 'fitlme';
+    res.(fields{k}).stats(6).stats = lme;
+    res.(fields{k}).stats(6).coefficients = lme.Coefficients;
+    res.(fields{k}).stats(6).n = numel(x);
+    res.(fields{k}).stats(6).mdlcomp_no_neural = ...
+        compare(lme_no_neural,lme);
+    res.(fields{k}).stats(6).mdlcomp_no_contrast = ...
+        compare(lme_no_contrast,lme);
+    
+    if (2 + 2) == 5
+        X = [x ci];
+        lm = fitlm(X,y,'linear');
+        res.(fields{k}).stats(6).type = 'beh_slope = neural_slope + contrast';
+        res.(fields{k}).stats(6).test = 'fitlm';
+        res.(fields{k}).stats(6).stats = lm;
+        res.(fields{k}).stats(6).n = numel(x);
+    end
+    
+    title(sprintf('p_{neural} = %04.3f\np_{contrast} = %04.3f',...
+                  res.(fields{k}).stats(6).mdlcomp_no_neural.pValue(2),...
+                  res.(fields{k}).stats(6).mdlcomp_no_contrast.pValue(2)));
+    drawnow;
     
     
     %% n-way anova only for mice with matched targets
@@ -387,23 +390,23 @@ for k = 2:length(fields)
                              'model','interaction',...
                              'varnames',{'slope measure','contrast'},...
                              'display','off');    
-    res.(fields{k}).stats(11).type = ['two way anova of contrast x ' ...
+    res.(fields{k}).stats(7).type = ['two way anova of contrast x ' ...
                         'slope with matched volumes'];
-    res.(fields{k}).stats(11).test = 'anovan';
-    res.(fields{k}).stats(11).p = pv3;
-    res.(fields{k}).stats(11).stats = tbl; 
-    res.(fields{k}).stats(11).n = numel(x);
-    res.(fields{k}).stats(11).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
-    res.(fields{k}).stats(11).eta2.contrast = tbl{3,2} / tbl{6,2};
-    res.(fields{k}).stats(11).eta2.interaction = tbl{4,2} / tbl{6,2};
+    res.(fields{k}).stats(7).test = 'anovan';
+    res.(fields{k}).stats(7).p = pv3;
+    res.(fields{k}).stats(7).stats = tbl; 
+    res.(fields{k}).stats(7).n = numel(x);
+    res.(fields{k}).stats(7).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(7).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(7).eta2.interaction = tbl{4,2} / tbl{6,2};
     [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
-    res.(fields{k}).stats(11).multcomp(1).comps = m;
-    res.(fields{k}).stats(11).multcomp(1).means = c;
-    res.(fields{k}).stats(11).multcomp(1).gnames = gnames;
+    res.(fields{k}).stats(7).multcomp(1).comps = m;
+    res.(fields{k}).stats(7).multcomp(1).means = c;
+    res.(fields{k}).stats(7).multcomp(1).gnames = gnames;
     [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
-    res.(fields{k}).stats(11).multcomp(2).comps = m;
-    res.(fields{k}).stats(11).multcomp(2).means = c;
-    res.(fields{k}).stats(11).multcomp(2).gnames = gnames;
+    res.(fields{k}).stats(7).multcomp(2).comps = m;
+    res.(fields{k}).stats(7).multcomp(2).means = c;
+    res.(fields{k}).stats(7).multcomp(2).gnames = gnames;
     
     % plot
     subplot(nrows,ncols,24+k); hold on
@@ -460,38 +463,11 @@ for k = 2:length(fields)
     plotPrefs; axis tight;
     
     % save stats for linear model
-    res.(fields{k}).stats(12).type = 'sensitivity linear model all data points';
-    res.(fields{k}).stats(12).test = 'fitlm';
-    res.(fields{k}).stats(12).p = pv;
-    res.(fields{k}).stats(12).stats = lm;
-    res.(fields{k}).stats(12).n = numel(x);
-    
-    
-    %%
-    % linear model for low contrast only
-    [b1,pv1,xp1,yp1,ypci1,lm1] = fitlmWrapper(x(ci==1),y(ci==1));
-
-    % save stats for linear model
-    res.(fields{k}).stats(13).type = 'sensitivity linear model low contrast';
-    res.(fields{k}).stats(13).test = 'fitlm';
-    res.(fields{k}).stats(13).p = pv1;
-    res.(fields{k}).stats(13).stats = lm1;
-    res.(fields{k}).stats(13).n = sum(ci==1);
-    
-    
-    %%
-    % linear model for high contrast only
-    [b2,pv2,xp2,yp2,ypci2,lm2] = fitlmWrapper(x(ci==2),y(ci==2));
-    
-    % save stats for linear model
-    res.(fields{k}).stats(14).type = 'sensitivity linear model high contrast';
-    res.(fields{k}).stats(14).test = 'fitlm';
-    res.(fields{k}).stats(14).p = pv2;
-    res.(fields{k}).stats(14).stats = lm2;
-    res.(fields{k}).stats(14).n = sum(ci==2);
-    title(sprintf('y = %03.2fx + %04.2f\np = %03.3f\np_L=%03.3f, p_H=%03.3f',...
-                  b(2),b(1),pv,pv1,pv2));
-    drawnow;
+    res.(fields{k}).stats(8).type = 'sensitivity linear model all data points';
+    res.(fields{k}).stats(8).test = 'fitlm';
+    res.(fields{k}).stats(8).p = pv;
+    res.(fields{k}).stats(8).stats = lm;
+    res.(fields{k}).stats(8).n = numel(x);
     
     
     %%
@@ -503,33 +479,63 @@ for k = 2:length(fields)
                              'model','interaction',...
                              'varnames',{'threshold measure','contrast'},...
                              'display','off');
-    res.(fields{k}).stats(15).type = 'two way anova of contrast x sensitivity';
-    res.(fields{k}).stats(15).test = 'anovan';
-    res.(fields{k}).stats(15).p = pv3;
-    res.(fields{k}).stats(15).stats = stats;
-    res.(fields{k}).stats(15).table = tbl;
-    res.(fields{k}).stats(15).n = numel(x);
-    res.(fields{k}).stats(15).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
-    res.(fields{k}).stats(15).eta2.contrast = tbl{3,2} / tbl{6,2};
-    res.(fields{k}).stats(15).eta2.interaction = tbl{4,2} / tbl{6, ...
+    res.(fields{k}).stats(9).type = 'two way anova of contrast x sensitivity';
+    res.(fields{k}).stats(9).test = 'anovan';
+    res.(fields{k}).stats(9).p = pv3;
+    res.(fields{k}).stats(9).stats = stats;
+    res.(fields{k}).stats(9).table = tbl;
+    res.(fields{k}).stats(9).n = numel(x);
+    res.(fields{k}).stats(9).eta2.threshold_measure = tbl{2,2} / tbl{6,2};
+    res.(fields{k}).stats(9).eta2.contrast = tbl{3,2} / tbl{6,2};
+    res.(fields{k}).stats(9).eta2.interaction = tbl{4,2} / tbl{6, ...
                         2};
     [c,m,h,gnames] = multcompare(stats,'dimension',[1],'display','off');
-    res.(fields{k}).stats(15).multcomp(1).comps = m;
-    res.(fields{k}).stats(15).multcomp(1).means = c;
-    res.(fields{k}).stats(15).multcomp(1).gnames = gnames;
+    res.(fields{k}).stats(9).multcomp(1).comps = m;
+    res.(fields{k}).stats(9).multcomp(1).means = c;
+    res.(fields{k}).stats(9).multcomp(1).gnames = gnames;
     [c,m,h,gnames] = multcompare(stats,'dimension',[2],'display','off');
-    res.(fields{k}).stats(15).multcomp(2).comps = m;
-    res.(fields{k}).stats(15).multcomp(2).means = c;
-    res.(fields{k}).stats(15).multcomp(2).gnames = gnames;
+    res.(fields{k}).stats(9).multcomp(2).comps = m;
+    res.(fields{k}).stats(9).multcomp(2).means = c;
+    res.(fields{k}).stats(9).multcomp(2).gnames = gnames;
     
     %%
-    % linear model with contrast predictor
-    X = [x ci];
-    lm = fitlm(X,y,'linear');
-    res.(fields{k}).stats(16).type = 'beh_sense = neural_sense + contrast';
-    res.(fields{k}).stats(16).test = 'fitlm';
-    res.(fields{k}).stats(16).stats = lm;
-    res.(fields{k}).stats(16).n = numel(x);
+    % mixed effects model linear model with contrast predictor
+    t = table();
+    t.neural = x;
+    t.behavior = y;
+    t.contrast = ci;
+    t.mouse = g;
+    lme = fitlme(t,'behavior ~ neural + contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_neural = fitlme(t,'behavior ~ contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_contrast = fitlme(t,'behavior ~ neural + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    
+    res.(fields{k}).stats(10).type = ['beh_sense = neural_sense + ' ...
+                        'contrast + (contrast-1|mouse)'];
+    res.(fields{k}).stats(10).test = 'fitlme';
+    res.(fields{k}).stats(10).stats = lme;
+    res.(fields{k}).stats(10).coefficients = lme.Coefficients;
+    res.(fields{k}).stats(10).n = numel(x);
+    res.(fields{k}).stats(10).mdlcomp_no_neural = ...
+        compare(lme_no_neural,lme);
+    res.(fields{k}).stats(10).mdlcomp_no_contrast = ...
+        compare(lme_no_contrast,lme);
+    
+    if (2+2) == 5
+        % linear model with contrast predictor
+        X = [x ci];
+        lm = fitlm(X,y,'linear');
+        res.(fields{k}).stats(10).type = 'beh_sense = neural_sense + contrast';
+        res.(fields{k}).stats(10).test = 'fitlm';
+        res.(fields{k}).stats(10).stats = lm;
+        res.(fields{k}).stats(10).n = numel(x);
+    end
+    
+    title(sprintf('p_{neural} = %04.3f\np_{contrast} = %04.3f',...
+                  res.(fields{k}).stats(10).mdlcomp_no_neural.pValue(2),...
+                  res.(fields{k}).stats(10).mdlcomp_no_contrast.pValue(2)));
     
 end
 
