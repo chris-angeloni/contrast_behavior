@@ -1,4 +1,8 @@
-function plotFigs_CFA(res)
+function plotFigs_CFA(res,plot_dir)
+
+if ~exist('plot_dir','var')
+    plot_dir = './_plots';
+end
 
 sigmaNoise = .01;
 nLevels = 16;
@@ -99,7 +103,7 @@ plot(1:150,mean(res.buffer.thetahat,2),'k','linewidth',1);
 xlabel('time');
 ylabel('theta');
 
-saveFigPDF(f1,[550 800],'./_plots/_efficient_coding_model.pdf');
+saveFigPDF(f1,[550 800],fullfile(plot_dir,'_efficient_coding_model.pdf'));
 
 
 
@@ -178,7 +182,7 @@ xticks([-10,-5,0,5,10])
 yticks(0:.02:.04)
 plotPrefs;
 
-saveFigPDF(f2,[400 300],'./_plots/nl_adapt.pdf')
+saveFigPDF(f2,[400 300],fullfile(plot_dir,'nl_adapt.pdf'))
 
 
 
@@ -221,7 +225,7 @@ for i=1:numel(iT)
     plotPrefs;
     
 end
-saveFigPDF(f3,[1600 300],'./_plots/target_noise_dist_dt.pdf');
+saveFigPDF(f3,[1600 300],fullfile(plot_dir,'target_noise_dist_dt.pdf'));
 
 
 %plot discriminability
@@ -248,5 +252,5 @@ ylim([0,5])
 xlabel('time after switch')
 plotPrefs;
 
-saveFigPDF(f4,[300 300],'./_plots/discriminability_dt.pdf');
+saveFigPDF(f4,[300 300],fullfile(plot_dir,'discriminability_dt.pdf'));
 

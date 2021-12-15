@@ -36,6 +36,127 @@ ops.include = include;
 run_normative_model;
 
 
+
+
+
+
+
+
+
+
+%% simulate inactivation
+% run regularly
+sigma_n = 1;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it without gain control
+sigma_n = 1;
+sigma_c = [1 2];
+gc = 'off';
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with low gain in contrast
+sigma_n = 1;
+sigma_c = [1 2];
+gc = 'low';
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with med noise in contrast
+sigma_n = 2;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with med noise in contrast
+sigma_n = 3;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with high noise in contrast
+sigma_n = 5;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+
+% simulate silent conditions by scaling the background
+silent_scale = 0.1;
+
+% run it with regular noise in silence
+sigma_n = 1;
+sigma_c = [1 1];   % background is only a product of neural noise
+gc = [];
+f = 2 * .25;       % high contrast targets (scaled as before)
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+% run it with med noise in silence
+sigma_n = 2;
+sigma_c = [1 1];  
+gc = [];
+f = 2 * .25;      
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+% run it with med noise in silence
+sigma_n = 3;
+sigma_c = [1 1];   % background is only a product of neural noise
+gc = [];
+f = 2 * .25;      
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+% run it with high noise in silence
+sigma_n = 5;
+sigma_c = [1 1];   % background is only a product of neural noise
+gc = [];
+f = 2 * .25;       
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+
+%  % run it with regular noise in silence
+%  sigma_n = 1;       % neural noise = 1
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+%  
+%  % run it with med noise in silence
+%  sigma_n = 2;       % neural noise = 5 to simulate muscimol
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+%  
+%  % run it with med noise in silence
+%  sigma_n = 3;       % neural noise = 5 to simulate muscimol
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+%  
+%  % run it with high noise in silence
+%  sigma_n = 5;       % neural noise = 5 to simulate muscimol
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+
+
+
+
+
+
+
+
+
 %% Figure 3: run and plot behavior
 % (requires behavior folder: ~/gits/gain-gonogo/')
 stats_beh = run_behavior;

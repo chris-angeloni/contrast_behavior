@@ -1,7 +1,9 @@
-function [res,p] = varianceSims(muTlow,sigmaLow,sigmaHigh,f)
+function [res,p] = varianceSims(muTlow,sigmaLow,sigmaHigh,f,sigmaNoise,gainControl,silence)
 
 % load parameters
 p = load('optimalNonlinearities_VarianceReconstruction.mat');
+
+fprintf('VOLUME %g\n',muTlow);
 
 
 %--------------- stimulus parameters and generation ----------------------%
@@ -13,8 +15,8 @@ p = load('optimalNonlinearities_VarianceReconstruction.mat');
 %target distribution parameters
 muThigh = muTlow;
 %f = .25;
-sigmaTlow  = f.*sigmaLow;
-sigmaThigh = f.*sigmaHigh;
+sigmaTlow  = f .* sigmaLow;
+sigmaThigh = f .* sigmaHigh;
 
 %index of the number of spikes (max spikes = levelsInd + 1)
 levelsInd = 15;
@@ -31,18 +33,27 @@ nC = 1e4;
 %total number of samples
 nT = tC * nC * 2;
 
+% noise scale
+if ~exist('sigmaNoise','var') | isempty(sigmaNoise)
+    sigmaNoise = 1;
+end
+
 %stimulus generation
 thetaV = repmat([sigmaLow * ones(tC, 1); sigmaHigh * ones(tC, 1)], nC, 1);
 thresh  = (sigmaLow+sigmaHigh)./2;
 iL = find(thetaV<thresh);
-iH = find(thetaV>thresh);
-xV = thetaV .* randn(nT, 1);
+iH = find(thetaV>=thresh);
+xV = thetaV .* randn(nT, 1) .* sigmaNoise .* silence;
 
 %target generation
 targetV = zeros(nT,1);
-targetV(iL) = randn(numel(iL), 1) * sigmaTlow  + muTlow;
-targetV(iH) = randn(numel(iH), 1) * sigmaThigh + muThigh;
+targetV(iL) = randn(numel(iL), 1) * sigmaNoise * sigmaTlow  + muTlow;
+targetV(iH) = randn(numel(iH), 1) * sigmaNoise *  sigmaThigh + muThigh;
 
+figure(12343); clf; hold on;
+histogram(xV);
+histogram(targetV);
+drawnow;
 
 
 
@@ -83,6 +94,16 @@ x0Curr = p.rs_noise01.x0(dInd, levelsInd);
 p0Curr = p.rs_noise01.p0(dInd, levelsInd);
 p1Curr = p.rs_noise01.p1(dInd, levelsInd);
 
+
+if exist('gainControl','var') & ~isempty(gainControl)
+    if strcmp(gainControl,'off')
+        kCurr = 0.6;
+    elseif strcmp(gainControl,'low')
+        kCurr = 0.25;
+    end
+end
+
+
 for t = 2:nT
     
      if ~mod(t, 100000)
@@ -116,6 +137,15 @@ for t = 2:nT
     %decoding parameters
     p0Curr = p.rs_noise01.p0(dInd, levelsInd);
     p1Curr = p.rs_noise01.p1(dInd, levelsInd);
+    
+    % overwrite kCurr if specified
+    if exist('gainControl','var') & ~isempty(gainControl)
+        if strcmp(gainControl,'off')
+            kCurr = 0.6;
+        elseif strcmp(gainControl,'low')
+            kCurr = 0.25;
+        end
+    end
     
     %save parameters
     kV(t) = kCurr;
