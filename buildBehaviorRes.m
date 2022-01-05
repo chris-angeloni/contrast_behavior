@@ -1,3 +1,5 @@
+function buildBehaviorRes(mouseList,filePath,resFile,pcFlag,adjust);
+
 %% builds a data table for each behavioral session
 
 % clear vars
@@ -120,9 +122,9 @@ for m = 1:length(mouseList)
 
         % compute performance for each trial type (ignore the last
         % column of tt for now -- this is the noise background
-        % pattern, and may be incorrect for quite a few mice)
+        % pattern, and may be incorrect for some mice)
         [rate, dp, pc, nresp, ntrials] = ...
-            gonogoPerformance(resp,tt(:,1:2),abort,1,7,[],false);
+            gonogoPerformance(resp,tt(:,1:2),abort,1,7,[],adjust);
         
         % add to results structure
         s(i).rate = rate;

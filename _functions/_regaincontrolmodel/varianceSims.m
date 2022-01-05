@@ -38,6 +38,11 @@ if ~exist('sigmaNoise','var') | isempty(sigmaNoise)
     sigmaNoise = 1;
 end
 
+% silent amplitude
+if ~exist('silence','var') | isempty(silence)
+    silence = 1;
+end
+
 %stimulus generation
 thetaV = repmat([sigmaLow * ones(tC, 1); sigmaHigh * ones(tC, 1)], nC, 1);
 thresh  = (sigmaLow+sigmaHigh)./2;
