@@ -30,15 +30,16 @@ wave_include(~isnan(vertcat(spikeData.waveform.FWHM))) = res_wave.include;
 include = [spikeData.cellinfo{:,8}]'>1 & wave_include;
 ops.include = include;
 
-%% Figure 1: run and plot the normative model simulations
-% (this takes 20-30 minutes the first time, several minutes after
-%  saving the initial simulatuion results)
-stats_norm = run_normative_model;
-
 
 %% Figure 3: run and plot behavior
 % (requires behavior folder: ~/gits/gain-gonogo/')
 stats_beh = run_behavior;
+
+
+%% Figure 1: run and plot the normative model simulations
+% (this takes 20-30 minutes the first time, several minutes after
+%  saving the initial simulatuion results)
+stats_norm = run_normative_model;
 
 % plot percent change in behavior versus model
 fh = plot_behavior_model_comp(stats_beh,stats_norm,1);
