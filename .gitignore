@@ -4,4 +4,4 @@
 *.sh.o*
 setup_schematic.ai
 *~$*
-*.DS_store
+*.DS_Store
