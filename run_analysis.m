@@ -60,8 +60,8 @@ stats_muscimol = run_muscimol;
 ops.resDir = './_data';
 ops.bin = .005;
 ops.baseline = [-.1 0];
-ops.target = [0 .1];
-ops.response = [.1 1];
+ops.target = [0 .2];
+ops.response = [.2 1];
 ops.edges = ops.target(1)+ops.baseline(1) : ...
     ops.bin : ...
     ops.target(2)+ops.response(2)-ops.baseline(1);
@@ -70,11 +70,16 @@ ops.targetLevel = [5 6];
 ops.noiseLevel = [0];
 ops.smooth = 2;
 ops.timeInd = 1;
-ops.sig_neurons = true;
+ops.auc_its = 1000;
+ops.sig_neurons = false;
 ops.resFile = '_res_psych.mat';
 
 % run
 [res_psych,r_psych] = run_psych(spikeData,sessionData,ops);
+
+% psych analysis on pseudo_population
+%r_psych_pseudo = run_pseudopop(res_psych,ops)
+
 
 % plot summary
 stats_psych = plot_psych_summaries(r_psych,ops);
@@ -166,6 +171,19 @@ ops.fig_visible = 'off';
 
 % plots and stats
 stats_ln = plot_lnmodel_summaries(res_ln,res_psych,r_psych,ops)
+
+
+%% run STRF analysis
+% tests whether strfs are altered during behavior
+
+% options
+ops.resFile = '_res_strf.mat';
+ops.strf_its = 2000;
+ops.bins = 8;
+
+% run
+res_strf = run_strf(spikeData,sessionData,ops)
+
 
 
 

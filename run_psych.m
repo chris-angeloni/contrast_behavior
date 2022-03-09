@@ -31,7 +31,7 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
         e = sessionData.events(cellInfo{i,2} == [sessionData.session.sessionID]);
         b = sessionData.behavior(cellInfo{i,2} == [sessionData.session.sessionID]);
         
-        % get PSTH
+        % get PSTH and mean spike count per trial
         [PSTH,raster,trials,PSTHs] = makePSTH(spikes{i},e.targOn,ops.edges,ops.smooth);
         t_spikes = mean(PSTH(:,ops.time > ops.target(1) & ...
                              ops.time < ops.target(2)),2);
@@ -57,7 +57,7 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
                 ndist = t_spikes(I);
             else
                 sdist = t_spikes(I);
-                [auc(j-1),~,~,~,auc_pct(j-1,:),~,~,asig] = bootROC(ndist,sdist,[],500);
+                [auc(j-1),~,~,~,auc_pct(j-1,:),~,~,asig] = bootROC(ndist,sdist,[],ops.auc_its);
                 auc_sig(j-1) = ~(.5 >= auc_pct(j-1,1) & .5 <= auc_pct(j-1,2));
             
             end
@@ -85,7 +85,7 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
         plot(diff(t));
         xlabel('Cell'); ylabel('Time (s)');
         xlim([0 length(spikes)]);
-        title('run_psych.m progress');
+        title('run_psych.m progress','interpreter','none');
         drawnow;        
         
         
@@ -120,13 +120,14 @@ else
     
 end
 
-% use frozen auc percentiles for stable significance over multiple runs
-tmp = load('./_data/psych_sig_cells.mat');
-for i = 1:length(res.single_cell)
-    res.single_cell(i).auc_pct = tmp.auc_pct{i};
-    res.single_cell(i).sig = tmp.auc_sig{i};
+if ~isfield(ops,'auc_its') | ops.auc_its == 500
+    % use frozen auc percentiles for stable statistics over multiple runs
+    tmp = load('./_data/psych_sig_cells.mat');
+    for i = 1:length(res.single_cell)
+        res.single_cell(i).auc_pct = tmp.auc_pct{i};
+        res.single_cell(i).sig = tmp.auc_sig{i};
+    end
 end
-
 
 
 if ~isfield(res,'pop')
@@ -145,9 +146,13 @@ if ~isfield(res,'pop')
     % to two or more volumes
     sig = vertcat(res.single_cell.sig);
     sigCells = sum(sig,2) >= 2;
+    
+    % convert session ids to strings
+    sids = cellfun(@num2str,{s.sessionID},'uniformoutput',false);
+    % contains(sids,'1804071101')
 
     i = 0;
-    for sess = 1:length(s)
+    for sess = 107:length(s)
         
         plot_sig = [];
         
@@ -165,10 +170,11 @@ if ~isfield(res,'pop')
         if sum(cellI) >= 3
             
             %% analysis
-            fprintf('SVM session %d/%d... ',sess,length(s)); tic;
+            fprintf('Population classifiers: session %d/%d... ',sess,length(s)); tic;
             
             i = i + 1;
             
+            %% setup
             % include good trials
             include = ~b(sess).abort & b(sess).goodTrials;
             
@@ -185,33 +191,46 @@ if ~isfield(res,'pop')
             
             % labels
             labels = vols > 0;
+            uTrials = [0:s(sess).nLvl-1]';
             
             % run svm
             cvp = cvpartition(vols,'KFold',10,'Stratify',true);
-            mdl = fitcsvm(X,labels,'KernelFunction','linear','CVPartition',cvp,...
+            mdl_svm = fitcsvm(X,labels,'KernelFunction','linear','CVPartition',cvp,...
                           'Standardize',true,...
                           'Prior',[sum(labels == 0) / length(labels) ...
                                 sum(labels == 1) / length(labels)]);
-            elabel = kfoldPredict(mdl);
+            elabel = kfoldPredict(mdl_svm);
             
+            % svm performance
+            psvm_adj = compute_yesno_perf(elabel,vols,uTrials,...
+                                          true);
+            psvm = compute_yesno_perf(elabel,vols,uTrials,...
+                                      false);
+            
+            
+            %% LDA classifier
+            mdl_lda = fitcdiscr(X,labels,'CVPartition',cvp,...
+                                'discrimType','pseudoLinear');
+            lda_label = kfoldPredict(mdl_lda);
+            plda_adj = compute_yesno_perf(lda_label,vols,uTrials,...
+                                          true);
+            plda = compute_yesno_perf(lda_label,vols,uTrials,...
+                                      false);
+            
+            
+            
+            %% simple linear classifier
             % train CD
             y = vols;
             [projection cd wt] = trainCD(X,y,[],ops);
             normp = normalize(projection,'range');
             
             % criterion classifier using the projection
-            uTrials = [0:s(sess).nLvl-1]';
             [pred, crit, rule] = crit_classifier(normp,vols);
             critr_adj = compute_yesno_perf(pred,vols,uTrials,...
                                            true);
             critr = compute_yesno_perf(pred,vols,uTrials,...
                                        false);
-            
-            % svm performance
-            psvm_adj = compute_yesno_perf(elabel,vols,uTrials,...
-                                           true);
-            psvm = compute_yesno_perf(elabel,vols,uTrials,...
-                                          false);
             
             % performance per snr
             pauc = nan(1,length(uTrials)-1);
@@ -237,6 +256,8 @@ if ~isfield(res,'pop')
             res.pop(i).beh_rate_adj = br_adj;
             res.pop(i).svm_rate = psvm;
             res.pop(i).svm_rate_adj = psvm_adj;
+            res.pop(i).lda_rate = plda;
+            res.pop(i).lda_rate_adj = plda_adj;
             res.pop(i).critp = critr;
             res.pop(i).critp_adj = critr_adj;
             res.pop(i).auc = pauc;
@@ -282,12 +303,14 @@ else
     
 end
 
-% use frozen population auc percentiles for stable significance
-% values over multiple runs
-tmp = load('./_data/psych_sig_cells.mat');
-for i = 1:length(res.pop)
-    res.pop(i).auc_pc = tmp.pop_auc_pct{i};
-    res.pop(i).auc_sig = tmp.pop_auc_sig{i};
+if ~isfield(ops,'auc_its') | ops.auc_its == 500
+    % use frozen population auc percentiles for stable significance
+    % values over multiple runs
+    tmp = load('./_data/psych_sig_cells.mat');
+    for i = 1:length(res.pop)
+        res.pop(i).auc_pc = tmp.pop_auc_pct{i};
+        res.pop(i).auc_sig = tmp.pop_auc_sig{i};
+    end
 end
 
 if ~exist('r','var');

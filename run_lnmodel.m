@@ -1,6 +1,6 @@
 function [res] = run_lnmodel(spikeData,sessionData,ops)
 
-%% function [res] = run_lnmodel(spikeData,sessionData,ops)
+%% function [res] = run_strf(spikeData,sessionData,ops)
 resFile = ops.resFile;
 resFN = fullfile(ops.resDir,resFile);
 
