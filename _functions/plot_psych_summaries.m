@@ -127,10 +127,178 @@ for i = 1:length(r.vols_nn)
     ind = ~isnan(r.beh_rate_adj(i,2:end));
     if sum(ind,2) == 6
         matchSess(i,1) = all(r.vols_nn(i,ind) == [0 5 10 15 20 25],2);
+        matchRange(i,1) = range(r.vols_nn(i,ind)) == 25;
     else
         matchSess(i,1) = false;
+        matchRange(i,1) = false;
+
+    end
+    sessRange(i,1) = range(r.vols_nn(i,ind));
+end
+
+% extract neural and behavioral performance
+p_b = nan(length(r.vols_nn),6);
+p_n = p_b;
+vol = p_b;
+for i = 1:length(r.vols_nn)
+    nni = ~isnan(r.critp_adj_PC(i,:));
+    if sum(nni) == 6
+        p_b(i,:) = r.beh_rate_adj_PC(i,nni);
+        p_n(i,:) = r.critp_adj_PC(i,nni);
+        vol(i,:) = r.vols_nn(i,nni);
+        cc(i,:) = corr(p_b(i,:)',p_n(i,:)');
     end
 end
+
+
+%% neurometric-psychometric prediction
+
+% select data
+include = ~badMouse & sum(r.auc_sig,2,'omitnan')>3 & r.beh_rate_adj(:,1) < .3;
+pb_all = p_b(include,:);
+pn_all = p_n(include,:);
+vol_all = vol(include,:);
+cI = r.contrastI(include);
+cv = col_rgb(cI+1,:);
+
+% plot
+f178 = figure(178); clf;
+nrs = 3; ncs = 5;
+sz2 = [1000 600];
+set(f178,'Position',[0 0 sz2]);
+
+% select example and plot
+exS = 2007070944;
+I = r.sessionID == exS;
+sz = (vol(I,:)-min(vol(I,:))+1)*2;
+
+s1 = subplot(nrs,ncs,1); hold on;
+plot(vol(I,:),p_b(I,:),'b')
+scatter(vol(I,:),[.5 .5 .5 .5 .5 .5],sz,'k');
+ylim([.4 1]); box off;
+set(gca,'ytick',[.5 1]);
+ylabel('Percent Correct (behavior)');
+s1.Units = 'pixels';
+s1.Position(3) = 50;
+plotPrefs;
+
+s7 = subplot(nrs,ncs,7); hold on;
+plot(p_n(I,:),vol(I,:),'b');
+scatter([.5 .5 .5 .5 .5 .5],vol(I,:),sz,'k');
+xlim([.4 1]); box off;
+set(gca,'xtick',[.5 1]);
+xlabel('Percent Correct (neural)');
+s7.Units = 'pixels';
+s7.Position(4) = 50;
+plotPrefs;
+
+s2 = subplot(nrs,ncs,2); hold on;
+plot([.4 1],[.4 1],'k');
+plot([.5 .5],[.4 1],'k:');
+plot([.4 1],[.5 .5],'k:');
+plot(p_n(I,:),p_b(I,:),'b','LineWidth',1.5);
+scatter(p_n(I,:),p_b(I,:),sz,'k');
+set(gca,'ytick',[.5 1]);
+set(gca,'xtick',[.5 1]);
+axis tight; plotPrefs;
+
+% plot all the sessions
+subplot(nrs,ncs,3); hold on;
+h = plot(pn_all',pb_all','-','color',[0 0 0 .2]);
+set(h, {'color'}, num2cell([cv .3 * ones(length(cv),1)],2));
+sz = vol_all(:);
+sz = sz - min(sz) + 1;
+cI2 = repmat(cI,1,6);
+cv2 = col_rgb(cI2+1,:);
+% scatter(pn_all(:),pb_all(:),sz/2,cv2);
+plot([.2 1],[.2 1],'k');
+plot([.5 .5],[.2 1],'k:');
+plot([.2 1],[.5 .5],'k:');
+axis tight;
+xlabel('Percent Correct (neural)');
+ylabel('Percent Correct (behavior)');
+plotPrefs;
+
+% histogram of correlations
+subplot(nrs,ncs,4);
+histogram(cc(include),20,'facecolor','k');
+ylabel('Count (sessions)');
+xlabel('r')
+box off; plotPrefs;
+
+% linear model
+T = table();
+T.volume = normalize(vol_all(:));
+T.contrast = cI2(:);
+T.neural = normalize(pn_all(:));
+T.behavior = pb_all(:);
+mdl = fitlm(T,'behavior ~ volume + contrast + neural',...
+            'CategoricalVar','contrast')
+
+% plot model results
+subplot(nrs,ncs,5); hold on;
+clrs = [.5 .5 .5; 1 0 1; 0 0 0];
+for i = 1:3
+    bar(i,mdl.Coefficients.Estimate(i+1),'FaceColor',clrs(i,:));
+    plotPval(mdl.Coefficients.pValue(i+1),i,.15,'data');
+    hold on;
+end
+errorbar([1 2 3],mdl.Coefficients.Estimate(2:end),...
+         mdl.Coefficients.SE(2:end),'k.');
+set(gca,'xtick',[1 2 3],...
+        'xticklabels',{'Volume','Contrast','Neurometric'});
+pv = mdl.Coefficients.pValue(2:end);
+ylabel('Coefficient');
+box off; plotPrefs;
+
+subplot(nrs,ncs,8);
+plot(mdl); plotPrefs; box off;
+
+% include matched targets only
+include = sessRange == 25;
+cI = r.contrastI(include);
+
+% contrast effect on neurometric threshold with matched targets
+subplot(nrs,ncs,9);
+thresh = r.critp_adj_PC_fit.threshold(include);
+clear y;
+y{1} = thresh(cI==0);
+y{2} = thresh(cI==1);
+plotDist([1 2],y,{'b','r'},[],'sem','mean');
+set(gca,'xtick',[1 2],'xticklabels',{'Low','High'});
+xlabel('Contrast');
+ylabel('Neurometric Threshold');
+plotPrefs;
+[pv,~,stats] = ranksum(y{1},y{2},'tail','left');
+plotPval(pv,1.5,25,'data')
+
+% contrast effect on neurometric slope with matched targets
+subplot(nrs,ncs,10);
+slope = r.critp_adj_PC_fit.max_slope(include);
+clear y;
+y{1} = slope(cI==0);
+y{2} = slope(cI==1);
+plotDist([1 2],y,{'b','r'},[],'sem','median');
+set(gca,'xtick',[1 2],'xticklabels',{'Low','High'});
+xlabel('Contrast');
+ylabel('Neurometric Slope');
+plotPrefs;
+[pv,~,stats] = ranksum(y{1},y{2},'tail','right');
+plotPval(pv,1.5,.1,'data')
+
+s2.Units = 'pixels';
+s1.Position(1) = s1.Position(1) + 100;
+s1.Position(4) = s2.Position(4);
+s1.Position(2) = s2.Position(2);
+s7.Position(3) = s2.Position(3);
+s7.Position(1) = s2.Position(1);
+s7.Position(2) = s7.Position(2) + 100;
+
+
+saveFigPDF(f178,sz2,'./_plots/_psych_prediction.pdf',.2);
+
+
+
 
 
 

@@ -1,7 +1,7 @@
 function [res,p] = varianceSims(muTlow,sigmaLow,sigmaHigh,f)
 
 % load parameters
-p = load('optimalNonlinearities_VarianceReconstruction.mat');
+p = load('./_data/optimalNonlinearities_VarianceReconstruction.mat');
 
 
 %--------------- stimulus parameters and generation ----------------------%

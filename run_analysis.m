@@ -21,7 +21,6 @@ res_wave = run_wave(spikeData);
 %f1 = figure(1); clf; plot_waveforms(res_wave);
 
 
-
 %% cell inclusion criteria
 %  1) Spike rate > 1Hz
 %  2) good waveform shapes (not inverted, good pvalue, not super wide)
@@ -126,6 +125,8 @@ stats_off = plot_offset_summaries(r_off);
 % example neuron
 plot_single_cell_offset(...
     spikeData.cellinfo{26,7},res_off,spikeData,sessionData,ops);
+
+keyboard
 
 
 
