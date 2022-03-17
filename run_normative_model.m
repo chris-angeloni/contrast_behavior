@@ -35,7 +35,7 @@ resFile = './_data/normative_model.mat';
 
 
 %-----generate results for muTlow = 1.5------%
-[res,p] = varianceSims(muTlow(indTarget),sigmaLow,sigmaHigh,f);
+[res,p] = varianceSims(muTlow(indTarget),sigmaLow,sigmaHigh,f,1);
 
 %% plot figures used in Cosyne abstract
 plotFigs_CFA(res); drawnow;
@@ -46,7 +46,7 @@ plotFigs_CFA(res); drawnow;
 if ~exist(resFile)
     fprintf('Simulating different target volumes...\n');
     for i = 1:length(muTlow)
-        rr(i) = varianceSims(muTlow(i),sigmaLow,sigmaHigh,f);
+        rr(i) = varianceSims(muTlow(i),sigmaLow,sigmaHigh,f,1);
     end
     save(resFile,'rr','-v7.3');
 else

@@ -1,4 +1,4 @@
-function [res,p] = varianceSims(muTlow,sigmaLow,sigmaHigh,f)
+function [res,p] = varianceSims(muTlow,sigmaLow,sigmaHigh,f,readoutNoise)
 
 % load parameters
 p = load('./_data/optimalNonlinearities_VarianceReconstruction.mat');
@@ -42,6 +42,11 @@ xV = thetaV .* randn(nT, 1);
 targetV = zeros(nT,1);
 targetV(iL) = randn(numel(iL), 1) * sigmaTlow  + muTlow;
 targetV(iH) = randn(numel(iH), 1) * sigmaThigh + muThigh;
+
+% if readoutNoise isnt provided, set to 1
+if ~exist('readoutNoise','var') | isempty(readoutNoise)
+    readoutNoise = 1;
+end
 
 
 
@@ -90,10 +95,14 @@ for t = 2:nT
      end
     
     %generate the spiking response to background
-    respBackgroundV(t) = encodeWithDiscrete(xV(t), kCurr, x0Curr, p.rs_noise01.sigmaNoise, p.rs_noise01.levels(levelsInd));
-    
+    respBackgroundV(t) = encodeWithDiscrete(xV(t), kCurr, x0Curr, ...
+                                            p.rs_noise01.sigmaNoise .* readoutNoise, ...
+                                            p.rs_noise01.levels(levelsInd));
+        
     %generate the spiking response to the target
-    respTargetV(t) = encodeWithDiscrete(targetV(t), kCurr, x0Curr, p.rs_noise01.sigmaNoise, p.rs_noise01.levels(levelsInd));
+    respTargetV(t) = encodeWithDiscrete(targetV(t), kCurr, x0Curr, ...
+                                        p.rs_noise01.sigmaNoise .* readoutNoise, ...
+                                        p.rs_noise01.levels(levelsInd));
        
     %decode the background
     xHatV(t) = p1Curr * respBackgroundV(t) + p0Curr;

@@ -14,4 +14,6 @@ spikes = (0:(nLevels-1))';
 
 [~,~,binCounts] = histcounts(rV,bins);
 rV = spikes(binCounts);
+
+
     
