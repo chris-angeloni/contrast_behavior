@@ -8,24 +8,29 @@ function res = run_behavior
 % directories/mice to consider
 filePath = '~/gits/gain-gonogo/_data';
 addpath(genpath('~/gits/gain-gonogo/_analysis/'));
+addpath(genpath('./_functions/'));
 mouseList = {'CA046','CA047','CA048','CA049','CA051','CA052','CA055',...
              'CA061','CA070','CA072','CA073','CA074','CA075','CA102',...
              'CA104','CA106','CA107',...
              'CA118','CA119','CA121','CA122',...
              'CA123','CA124','CA125','CA126'};
 
+% adjustment for psychometric data
+%adjust = '';
+%adjust = '_2N';
+adjust = '_log';
+
 % results file to use by default
-resFile = fullfile('_data','_res_behavior_psych_210616.mat');
+resFile = fullfile('_data',sprintf('_res_behavior_psych_210616%s.mat',adjust));
 
 % compute percent correct (otherwise, does p(respond))
 pcFlag = true;
 
 % if results aren't there, make them, otherwise, load them
 if ~exist(resFile,'file');
-    buildBehaviorRes;
-else
-    load(resFile);
+    buildBehaviorRes(mouseList,filePath,resFile,pcFlag,adjust);
 end
+load(resFile);
 
 % remove dummy mouse
 dat(contains(dat.mouse,'CA999'),:) = [];
@@ -98,6 +103,8 @@ disp(sess(sortI))
 
 fmain = figure(11); clf;
 saveFigPDF(fmain,figSize,pname);
+nrows = 7;
+ncols = 4;
 
 % keep only training sessions, discarding ones with muscimol, or no
 % noise condition
@@ -106,7 +113,7 @@ t = dat(include,:);
 t.mean_pc = mean(vertcat(t.pc{:}),2);
 
 % plot
-ax01 = subplot(9,4,[1 2]); hold on;
+ax01 = subplot(nrows,ncols,[1 2]); hold on;
 plotTrainingPerf(t,mouseList,colors);
 ax01.Position(3) = ax01.Position(3) - axOff;
 
@@ -136,13 +143,16 @@ if strcmp(thresh2use,'thresh75');
     t.thresh = t.thresh75;
 end
 
+
 %% mouse means
 f1 = figure(10); clf;
-[mouseSNR,mousePerf,mouseContrast] = plotMouseCurves(t,mouseList,mdl,colors,ms);
-saveFigPDF(f1,[800 800],'./_plots/_behavior_psych_curves.pdf')
+[mouseSNR,mousePerf,mouseContrast,mouseID] = plotMouseCurves(t,mouseList,mdl,colors,ms);
+saveFigPDF(f1,[800 800],'./_plots/_behavior_psych_curves.pdf',.2)
 
 %% thresholds over time
 figure(fmain);
+nrows = 7;
+ncols = 4;
 
 % get first training date for each mouse
 dt0 = varfun(@min,dat,'InputVariables','date',...
@@ -157,7 +167,7 @@ for i = 1:size(dt0,1)
 end
 
 % plot
-ax02 = subplot(9,4,[3]); hold on;
+ax02 = subplot(nrows,ncols,[3]); hold on;
 for i = 1:2
     I = t.contrast == (i-1);
     plot(t.expDays(I),t.thresh(I),'.',...
@@ -181,7 +191,7 @@ mp = grpstats(t,{'mouse','contrast'},'mean',...
 mp = nanpadTable(mp,'mouse','contrast');
 
 % threshold distributions
-ax4 = subplot(9,4,4); hold on;
+ax4 = subplot(nrows,ncols,4); hold on;
 var = 'mean_rate';
 x1 = mp.(var)(mp.contrast==0); 
 x2 = mp.(var)(mp.contrast==1);
@@ -211,16 +221,26 @@ res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',1);
 %%%%%%%%%%%%%%%%%%%%%%%
 %% aggregate psych data
 %%%%%%%%%%%%%%%%%%%%%%%
-
+xl = [-10 30];
 % for each contrast, plot the psychometric curves
 figure(fmain); 
-ax5 = subplot(9,4,5); hold on
+ax5 = subplot(nrows,ncols,5); hold on
 for i = 1:2
     
     % select data
     I = mouseContrast == (i-1);
     x = round(mouseSNR(I),1);
     y = mousePerf(I);
+    m = mouseID(I);
+    
+    % line per mouse
+    um = unique(m);
+    for j = 1:length(um)
+        mi = m == um(j);
+        plot(x(mi),y(mi),'color',[colors(i,:) .15])
+    end
+        
+    
     
     % stats over mice
     mx = grpstats(x,x,'mean');
@@ -230,26 +250,26 @@ for i = 1:2
     
     % fit
     xf = linspace(min(mx),max(mx),100);
-    [prms,mdl,thresh,sense,~,~,thresh75] = fitLogGrid(mx,my,[],ny,[],.75);
+    %[prms,mdl,thresh,sense,~,~,thresh75] = fitLogGrid(mx,my,[],ny,[],.75);
+    [prms,mdl,thresh,sense,~,~,thresh75] = fitLogGrid(x(:),y(:),[],[],[],.75);
     
     if strcmp(thresh2use,'thresh75')
         thresh = thresh75;
     end
     
     % plot
-    plot([-10 30],[.5 .5],'k');
-    errorBars(mx',my',colors_lite(i,:),'sem',[],sy,[],...
-              'o','LineWidth',1,'MarkerSize',ms, ...
-              'MarkerFaceColor',colors_lite(i,:));
-    % errorbar(mx,my,sy,'o','MarkerSize',ms,'CapSize',0,...
+    plot(xl,[.5 .5],'k');
+    %errorBars(mx',my',colors_lite(i,:),'sem',[],sy,[],...
+%          'o','LineWidth',1,'MarkerSize',ms, ...
+%           'MarkerFaceColor',colors_lite(i,:));
+% errorbar(mx,my,sy,'o','MarkerSize',ms,'CapSize',0,...
 %         'Color',colors(i,:)+(colors(i,:)==0)*.7,...
 %         'FaceColor',colors(i,:)+(colors(i,:)==0)*.7);
     plot(xf,mdl(prms,xf),'Color',colors(i,:),'LineWidth',1);
-    plot([thresh thresh],[.5 mdl(prms,thresh)],'-','Color',colors(i,:))
-    plot(thresh,mdl(prms,thresh),'k.','MarkerSize',ms*2);
+    plot([thresh thresh],[.5 mdl(prms,thresh)],'--','Color',colors(i,:))
     
 end  
-xlim([-10 30]);
+xlim(xl);
 ylabel('Percent Correct'); plotPrefs;
 
 
@@ -259,7 +279,7 @@ mp = grpstats(t,{'mouse','contrast'},'mean',...
 mp = nanpadTable(mp,'mouse','contrast');
 
 % threshold distributions
-ax6 = subplot(9,4,6); hold on;
+ax6 = subplot(nrows,ncols,6); hold on;
 var = 'mean_thresh';
 x1 = mp.(var)(mp.contrast==0); 
 x2 = mp.(var)(mp.contrast==1);
@@ -267,6 +287,7 @@ x2 = mp.(var)(mp.contrast==1);
 barWithError([x1 x2],{'Low Contrast','High Contrast'},{'b','r'},'sem',...
              'FaceAlpha',.5);
 plotPrefs; ylabel('Threshold (dB SNR)');
+
 
 % stats
 statcnt = statcnt + 1;
@@ -285,7 +306,7 @@ res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',1);
 
 
 % slope
-ax7 = subplot(9,4,7); hold on;
+ax7 = subplot(nrows,ncols,7); hold on;
 var = 'mean_maxslope';
 x1 = mp.(var)(mp.contrast==0); 
 x2 = mp.(var)(mp.contrast==1);
@@ -308,8 +329,8 @@ res(statcnt).n = [sum(~isnan(x1)) sum(~isnan(x2))];
 res(statcnt).effectSizeMethod = 'Hedges g';
 res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',1);
 
-% slope
-ax8 = subplot(9,4,8); hold on;
+% sensitivity
+ax8 = subplot(nrows,ncols,8); hold on;
 var = 'mean_sense';
 x1 = mp.(var)(mp.contrast==0); 
 x2 = mp.(var)(mp.contrast==1);
@@ -335,7 +356,13 @@ res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',1);
 drawnow;
 
 
-%% comparison of task variables over sessions
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% comparison purely low and high contrast %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % set up handles for different conditions
 t.rangeI = range(t.vols,2);
@@ -352,6 +379,9 @@ uSess = unique(mInd,'row');
 % session selection
 selector = t.meanI == 12.5 & t.rangeI == 25 & ...
     t.pequalI == 1 & t.requalI == 1;
+
+selector = t.rangeI == 25 & t.requalI == 1;
+
 labels = {'Low Contrast', 'High Contrast'};
 
 % stats (exclude mice with fewer than 3 sessions)
@@ -362,19 +392,18 @@ mp = nanpadTable(mp,groupStatsBy,'contrast',3);
 % exclude 
 
 % curve plot
-ax9 = subplot(9,4,[9]); hold on;
-plot([-5 30],[.5 .5],'k');
+ax9 = subplot(nrows,ncols,[9]); hold on;
+plot(xl,[.5 .5],'k');
 for i = 1:2
     I = mp.contrast == (i-1);
-    plotPsychCurves(mp,I,colors(i,:),'-',colors_lite(i,:),...
-                    ms,thresh2use);
+    plotPsychCurves(mp,I,colors(i,:),'-',colors_lite(i,:),ms,thresh2use);
 end
 ylabel('Percent Correct'); 
-plotPrefs; axis tight; ylim([.4 1]); xlim([-5 30]);
+plotPrefs; axis tight; ylim([.4 1]); xlim(xl);
   
 
 % threshold
-ax10 = subplot(9,4,10); hold on;
+ax10 = subplot(nrows,ncols,10); hold on;
 var = 'mean_thresh';
 x1 = mp.(var)(mp.contrast==0); 
 x2 = mp.(var)(mp.contrast==1);
@@ -395,10 +424,11 @@ res(statcnt).std = std([x1,x2],1,'omitnan');
 res(statcnt).n = [sum(~isnan(x1)) sum(~isnan(x2))];
 res(statcnt).effectSizeMethod = 'Hedges g';
 res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',0);
+res(statcnt).xx = {x1, x2};
 
 
 % slope
-ax11 = subplot(9,4,11); hold on;
+ax11 = subplot(nrows,ncols,11); hold on;
 var = 'mean_maxslope';
 x1 = mp.(var)(mp.contrast==0); 
 x2 = mp.(var)(mp.contrast==1);
@@ -419,10 +449,12 @@ res(statcnt).std = std([x1,x2],1,'omitnan');
 res(statcnt).n = [sum(~isnan(x1)) sum(~isnan(x2))];
 res(statcnt).effectSizeMethod = 'Hedges g';
 res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',0);
+res(statcnt).xx = {x1, x2};
+
 
 
 % sensitivity
-ax12 = subplot(9,4,12); hold on;
+ax12 = subplot(nrows,ncols,12); hold on;
 var = 'mean_sense';
 x1 = mp.(var)(mp.contrast==0); 
 x2 = mp.(var)(mp.contrast==1);
@@ -443,6 +475,8 @@ res(statcnt).std = std([x1,x2],1,'omitnan');
 res(statcnt).n = [sum(~isnan(x1)) sum(~isnan(x2))];
 res(statcnt).effectSizeMethod = 'Hedges g';
 res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',0);
+res(statcnt).xx = {x1, x2};
+
 
 drawnow;
 
@@ -468,18 +502,18 @@ mp = grpstats(st,grpVars,'mean',...
 
 
 % curve plots
-ax13 = subplot(9,4,[13]); hold on;
-plot([-5 30],[.5 .5],'k');
+ax13 = subplot(nrows,ncols,[13]); hold on;
+plot(xl,[.5 .5],'k');
 for i = 1:2
     I = mp.rangeI == ranges{i};
     plotPsychCurves(mp,I,colors(cselect,:),ls{i},mfill{i},ms,thresh2use,false);
 end
 ylabel('Percent Correct'); 
-plotPrefs; axis tight; ylim([.4 1]); xlim([-5 30]);
+plotPrefs; axis tight; ylim([.4 1]); xlim(xl);
 
     
 % threshold distributions
-ax14 = subplot(9,4,14); hold on;
+ax14 = subplot(nrows,4,14); hold on;
 var = 'mean_thresh'; grp = 'rangeI'; grp_val = ranges;
 plotPsychStats(mp,var,grp,grp_val,colors(cselect,:),...
                alphas,ls,'k',ms,labels,connectTheDots);
@@ -504,7 +538,7 @@ res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',0);
 
 
 % slope
-ax15 = subplot(9,4,15); hold on;
+ax15 = subplot(nrows,ncols,15); hold on;
 var = 'mean_maxslope'; grp = 'rangeI'; grp_val = ranges;
 plotPsychStats(mp,var,grp,grp_val,colors(cselect,:),...
                alphas,ls,'k',ms,labels,connectTheDots);
@@ -527,7 +561,7 @@ res(statcnt).effectSizeMethod = 'Hedges g';
 res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',0);
 
 % sense
-ax16 = subplot(9,4,16); hold on;
+ax16 = subplot(nrows,ncols,16); hold on;
 var = 'mean_sense'; grp = 'rangeI'; grp_val = ranges;
 plotPsychStats(mp,var,grp,grp_val,colors(cselect,:),...
                alphas,ls,'k',ms,labels,connectTheDots);
@@ -576,18 +610,18 @@ mp = grpstats(st,grpVars,'mean',...
 
 
 % psych plot
-ax17 = subplot(9,4,[17]); hold on;
-plot([-5 30],[.5 .5],'k');
+ax17 = subplot(nrows,4,[17]); hold on;
+plot(xl,[.5 .5],'k');
 ur = unique(mp.rangeCmp);
 for i = 1:length(ur)
     I = mp.rangeCmp == ur(i);
     plotPsychCurves(mp,I,colors(cselect,:),ls{i},mfill{i},ms,thresh2use,false);
 end
 ylabel('Percent Correct'); 
-plotPrefs; axis tight; ylim([.4 1]); xlim([-5 30]);
+plotPrefs; axis tight; ylim([.4 1]); xlim(xl);
     
 % threshold distributions
-ax18 = subplot(9,4,18); hold on;
+ax18 = subplot(nrows,ncols,18); hold on;
 var = 'mean_thresh'; grp = 'rangeCmp'; grp_val = ur;
 plotPsychStats(mp,var,grp,grp_val,colors(cselect,:),...
                alphas,ls,'k',ms,labels,connectTheDots);
@@ -610,7 +644,7 @@ res(statcnt).effectSizeMethod = 'Hedges g';
 res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',0);
 
 % slope
-ax19 = subplot(9,4,19); hold on;
+ax19 = subplot(nrows,ncols,19); hold on;
 var = 'mean_maxslope'; grp = 'rangeCmp'; grp_val = ur;
 plotPsychStats(mp,var,grp,grp_val,colors(cselect,:),...
                alphas,ls,'k',ms,labels,connectTheDots);
@@ -633,7 +667,7 @@ res(statcnt).effectSizeMethod = 'Hedges g';
 res(statcnt).effectSize = mes(x1,x2,'hedgesg','isDep',0);
 
 % sense
-ax20 = subplot(9,4,20); hold on;
+ax20 = subplot(nrows,ncols,20); hold on;
 var = 'mean_sense'; grp = 'rangeCmp'; grp_val = ur;
 plotPsychStats(mp,var,grp,grp_val,colors(cselect,:),...
                alphas,ls,'k',ms,labels,connectTheDots);
@@ -725,7 +759,7 @@ res(statcnt).effectSize = effsz;
 res(statcnt).h_fdr = fdr_bh(pv);
         
 % plot
-ax33 = subplot(9,4,[33 34]); hold on;
+ax33 = subplot(nrows,ncols,nrows*ncols-[2 3]); hold on;
 for i = 1:2
     x = offs; y = squeeze(dm(:,:,i));;
     xf = linspace(min(x),max(x),100);
@@ -760,13 +794,13 @@ for k = 1:2
 end
 plot([0 0],ylim,'k--');
 axis tight; xlim([-.1 1.1]);
-xlabel('Time (s., rel. contrast switch)');
+xlabel('Time (s)');
 ylabel('Percent Correct');
 plotPrefs;
 
 
 %% taus
-ax35 = subplot(9,4,35); hold on;
+ax35 = subplot(nrows,ncols,nrows*ncols - 1); hold on;
 [ph,pl,pe] = plotDist([1 2],taus,'k',true,[],[],[],'MarkerSize',ms);
 barWithError(taus,{'Low Contrast','High Contrast'},{'b','r'},'sem','FaceAlpha',.5);
 ylabel('\tau (s)'); plotPrefs;
@@ -784,6 +818,7 @@ res(statcnt).iqr = iqr(taus);
 res(statcnt).n = sum(~isnan(taus));
 res(statcnt).effectSizeMethod = 'Z/sqrt(n)';
 res(statcnt).effectSize = stats.zval / sqrt(size(taus,1));
+res(statcnt).xx = taus;
 
 
 if false
@@ -808,7 +843,7 @@ if false
     include = gm.GroupCount>1 & ~isnan(gm.mean_offs_0(:,2));
     gm = gm(include,:);
 
-    ax33 = subplot(9,4,[33 34]); hold on;
+    ax33 = subplot(nrows,ncols,nrows*ncols - [2 3]); hold on;
     plot([0 0],[.6 .9],'k--');
     for i = 1:2
         I = gm.contrast == (i-1);
@@ -831,7 +866,7 @@ if false
     plotPrefs;
 
 
-    ax35 = subplot(9,4,35); hold on;
+    ax35 = subplot(nrows,ncols,nrows*ncols - 1); hold on;
     var = 'mtau'; grp = 'contrast'; grp_val = {0, 1};
     labels = {'Low Contrast','High Contrast'};
     connectTheDots = true;
@@ -889,7 +924,7 @@ ax20.Position([2,4]) = ax17.Position([2,4]);
 ax35.Position(2) = ax33.Position(2);
 ax35.Position(4) = ax17.Position(4);
 
-saveFigPDF(fmain,figSize,pname);
+saveFigPDF(fmain,figSize,pname,.2);
 
     
 
@@ -1002,7 +1037,7 @@ if (2 + 2) == 5
         I = mp.requalI == rewC{i};
         plotPsychCurves(mp,I,colors(cselect,:),ls{i},mfill{i},ms,thresh2use);
     end
-    xlabel('Target Volume (dB SNR)'); ylabel('Percent Correct'); 
+    xlabel('Target Level (dB SNR)'); ylabel('Percent Correct'); 
     plotPrefs; axis tight; ylim([.4 1]); xlim([-5 30]);
 
 
@@ -1056,7 +1091,7 @@ if (2 + 2) == 5
         I = mp.pequalI == presP{i};
         plotPsychCurves(mp,I,colors(cselect,:),ls{i},mfill{i},ms,thresh2use);
     end
-    xlabel('Target Volume (dB SNR)'); ylabel('Percent Correct'); 
+    xlabel('Target Level (dB SNR)'); ylabel('Percent Correct'); 
     plotPrefs; axis tight; ylim([.4 1]); xlim([-5 30]);
 
     % threshold distributions

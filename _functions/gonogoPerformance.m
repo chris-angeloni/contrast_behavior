@@ -83,21 +83,20 @@ end
 
 % optional adjustments
 if ~exist('adjust','var') | isempty(adjust)
-    adjust = false;
+    adjust = '';
 end
 
-if adjust
+if contains(adjust,'log')
     % log-linear adjustment
-    adj = [.5 1];
-    
-    % response rate (corrected for perfection)
-    rate = (nresp+adj(1)) ./ (ntrials+adj(2));
+    rate = (nresp+.5) ./ (ntrials+1);
 
-else
-    % no adjustment
-    adj = [0 0];
-    
-    % response rate (corrected for perfection)
+elseif contains(adjust,'2N')
+    % 2N adjustment
+    rate = nresp ./ ntrials;
+    rate(rate == 0) = 1 ./ (2*ntrials(rate==0));
+    rate(rate == 1) = 1 - (1 ./ (2*ntrials(rate==1)));
+else   
+    % arbitrary rate adjustment
     rate = nresp ./ ntrials;
     rate(rate == 0) = .001;
     rate(rate == 1) = .999;

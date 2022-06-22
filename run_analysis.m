@@ -29,15 +29,21 @@ wave_include(~isnan(vertcat(spikeData.waveform.FWHM))) = res_wave.include;
 include = [spikeData.cellinfo{:,8}]'>1 & wave_include;
 ops.include = include;
 
-%% Figure 1: run and plot the normative model simulations
-% (this takes 20-30 minutes the first time, several minutes after
-%  saving the initial simulatuion results)
-run_normative_model;
-
 
 %% Figure 3: run and plot behavior
 % (requires behavior folder: ~/gits/gain-gonogo/')
 stats_beh = run_behavior;
+
+
+%% Figure 1: run and plot the normative model simulations
+% (this takes 20-30 minutes the first time, several minutes after
+%  saving the initial simulatuion results)
+stats_norm = run_normative_model;
+
+% plot percent change in behavior versus model
+fh = plot_behavior_model_comp(stats_beh,stats_norm,1);
+saveFigPDF(fh,[600 200],'./_plots/_behavior_model_comp.pdf');
+
 
 
 %% Figure 4: run and plot muscimol results
@@ -53,8 +59,8 @@ stats_muscimol = run_muscimol;
 ops.resDir = './_data';
 ops.bin = .005;
 ops.baseline = [-.1 0];
-ops.target = [0 .1];
-ops.response = [.1 1];
+ops.target = [0 .2];
+ops.response = [.2 1];
 ops.edges = ops.target(1)+ops.baseline(1) : ...
     ops.bin : ...
     ops.target(2)+ops.response(2)-ops.baseline(1);
@@ -63,11 +69,16 @@ ops.targetLevel = [5 6];
 ops.noiseLevel = [0];
 ops.smooth = 2;
 ops.timeInd = 1;
-ops.sig_neurons = true;
+ops.auc_its = 1000;
+ops.sig_neurons = false;
 ops.resFile = '_res_psych.mat';
 
 % run
 [res_psych,r_psych] = run_psych(spikeData,sessionData,ops);
+
+% psych analysis on pseudo_population
+%r_psych_pseudo = run_pseudopop(res_psych,ops)
+
 
 % plot summary
 stats_psych = plot_psych_summaries(r_psych,ops);
@@ -163,6 +174,7 @@ ops.fig_visible = 'off';
 stats_ln = plot_lnmodel_summaries(res_ln,res_psych,r_psych,ops)
 
 
+<<<<<<< HEAD
 %% figure ?: STRF analysis
 
 % options
@@ -170,10 +182,20 @@ ops.bins = 8;
 ops.strf_its = 1000;
 ops.resFile = '_res_strf_glm.mat';
 
+=======
+%% run STRF analysis
+% tests whether strfs are altered during behavior
+
+% options
+ops.resFile = '_res_strf.mat';
+ops.strf_its = 2000;
+ops.bins = 8;
+>>>>>>> 1d0661d1fcbec061a33bb3b00d60471f68d64763
 
 % run
 res_strf = run_strf(spikeData,sessionData,ops)
 
+<<<<<<< HEAD
 % find and remove empty cells
 empty = arrayfun(  @(a)isempty(a.sessionIndex),  res_strf  );
 res_strf(empty) = [];
@@ -386,12 +408,134 @@ run_readout_noise(0:15);
 %% figure ?: fit lohse model
 ops = [];
 run_lohse_model(ops);
+=======
+>>>>>>> 1d0661d1fcbec061a33bb3b00d60471f68d64763
 
 
 
 
 
 
+<<<<<<< HEAD
+=======
+
+
+
+
+
+
+
+
+
+
+
+
+%% simulate inactivation
+% run regularly
+sigma_n = 1;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it without gain control
+sigma_n = 1;
+sigma_c = [1 2];
+gc = 'off';
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with low gain in contrast
+sigma_n = 1;
+sigma_c = [1 2];
+gc = 'low';
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with med noise in contrast
+sigma_n = 2;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with med noise in contrast
+sigma_n = 3;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+% run it with high noise in contrast
+sigma_n = 5;
+sigma_c = [1 2];
+gc = [];
+f = .25;
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+
+% simulate silent conditions by scaling the background
+silent_scale = 0.1;
+
+% run it with regular noise in silence
+sigma_n = 1;
+sigma_c = [1 1];   % background is only a product of neural noise
+gc = [];
+f = 2 * .25;       % high contrast targets (scaled as before)
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+% run it with med noise in silence
+sigma_n = 2;
+sigma_c = [1 1];  
+gc = [];
+f = 2 * .25;      
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+% run it with med noise in silence
+sigma_n = 3;
+sigma_c = [1 1];   % background is only a product of neural noise
+gc = [];
+f = 2 * .25;      
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+% run it with high noise in silence
+sigma_n = 5;
+sigma_c = [1 1];   % background is only a product of neural noise
+gc = [];
+f = 2 * .25;       
+run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
+
+
+%  % run it with regular noise in silence
+%  sigma_n = 1;       % neural noise = 1
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+%  
+%  % run it with med noise in silence
+%  sigma_n = 2;       % neural noise = 5 to simulate muscimol
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+%  
+%  % run it with med noise in silence
+%  sigma_n = 3;       % neural noise = 5 to simulate muscimol
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+%  
+%  % run it with high noise in silence
+%  sigma_n = 5;       % neural noise = 5 to simulate muscimol
+%  sigma_c = [1 1];   % background is only a product of neural noise
+%  gc = [];
+%  f = 2 * .25;       % high contrast targets (scaled as before)
+%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
+
+
+>>>>>>> 1d0661d1fcbec061a33bb3b00d60471f68d64763
     
 
 

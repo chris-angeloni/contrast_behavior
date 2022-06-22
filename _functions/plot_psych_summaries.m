@@ -132,6 +132,7 @@ for i = 1:length(r.vols_nn)
         matchSess(i,1) = false;
         matchRange(i,1) = false;
 
+<<<<<<< HEAD
     end
     sessRange(i,1) = range(r.vols_nn(i,ind));
 end
@@ -147,7 +148,10 @@ for i = 1:length(r.vols_nn)
         p_n(i,:) = r.critp_adj_PC(i,nni);
         vol(i,:) = r.vols_nn(i,nni);
         cc(i,:) = corr(p_b(i,:)',p_n(i,:)');
+=======
+>>>>>>> 1d0661d1fcbec061a33bb3b00d60471f68d64763
     end
+    sessRange(i,1) = range(r.vols_nn(i,ind));
 end
 
 
@@ -581,12 +585,13 @@ for k = 2:length(fields)
     
     %% n-way anova only for mice with matched targets
     % set up mice
-    ind = matchSess;
+    ind = matchRange;
     contr = r.contrastI(ind);
     beh = r.beh_rate_adj_PC_fit.max_slope(ind);
     neural = r.([fields{k} '_fit']).max_slope(ind);
     grps = r.(grpvar)(ind);
     
+    % anova
     ci = grpstats(contr,{grps,contr},'mean')+1;
     cv = col_rgb(ci,:);
     x = grpstats(neural,{grps,contr},'mean');
@@ -616,6 +621,43 @@ for k = 2:length(fields)
     res.(fields{k}).stats(7).multcomp(2).means = c;
     res.(fields{k}).stats(7).multcomp(2).gnames = gnames;
     
+    
+    % lmes for matched mice
+    t = table();
+    t.neural = x;
+    t.behavior = y;
+    t.contrast = ci;
+    t.mouse = cat(1,g(:,1));
+    lme = fitlme(t,'behavior ~ neural + contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_neural = fitlme(t,'behavior ~ contrast + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    lme_no_contrast = fitlme(t,'behavior ~ neural + (contrast-1|mouse)',...
+                 'StartMethod','random');
+    
+    res.(fields{k}).stats(11).type = ['beh_slope = neural_slope + ' ...
+                        'contrast + (contrast-1|mouse) *MATCHED TARGS*'];
+    res.(fields{k}).stats(11).test = 'fitlme';
+    res.(fields{k}).stats(11).stats = lme;
+    res.(fields{k}).stats(11).coefficients = lme.Coefficients;
+    res.(fields{k}).stats(11).n = numel(x);
+    res.(fields{k}).stats(11).mdlcomp_no_neural = ...
+        compare(lme_no_neural,lme);
+    res.(fields{k}).stats(11).mdlcomp_no_contrast = ...
+        compare(lme_no_contrast,lme);
+    
+    if (2 + 2) == 5
+        X = [x ci];
+        lm = fitlm(X,y,'linear');
+        res.(fields{k}).stats(11).type = 'beh_slope = neural_slope + contrast';
+        res.(fields{k}).stats(11).test = 'fitlm';
+        res.(fields{k}).stats(11).stats = lm;
+        res.(fields{k}).stats(11).n = numel(x);
+    end
+    
+    drawnow;
+    
+        
     % plot
     subplot(nrows,ncols,24+k); hold on
     plot([.01 .055],[.01 .055],'k');
@@ -630,6 +672,10 @@ for k = 2:length(fields)
     ylabel('Behavioral Slope (PC/dB)');
     xlabel('Neural Slope (PC/dB)');
     plotPrefs; axis tight;
+    
+    title(sprintf('p_{neural} = %04.3f\np_{contrast} = %04.3f',...
+                  res.(fields{k}).stats(11).mdlcomp_no_neural.pValue(2),...
+                  res.(fields{k}).stats(11).mdlcomp_no_contrast.pValue(2)));
     
 end
 
