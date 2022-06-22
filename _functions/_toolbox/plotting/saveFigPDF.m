@@ -43,7 +43,7 @@ if exist('tickl','var');
 end
 
 if exist('savepath','var') & ~isempty(savepath)
-    print(h,savepath,'-dpdf','-r300','-painters');
+    print(h,savepath,'-dpdf','-r300','-painters','-bestfit');
 end
 
 

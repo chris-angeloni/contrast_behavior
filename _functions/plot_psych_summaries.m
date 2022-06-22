@@ -44,8 +44,8 @@ include = ~badMouse;
 
 % create figures
 f2 = figure(121212); clf;
-sz = [1200 1100];
-set(f2,'Position',[0 0 sz]);
+sz2 = [1200 1100];
+set(f2,'Position',[0 0 sz2]);
 
 
 
@@ -164,8 +164,8 @@ cv = col_rgb(cI+1,:);
 % plot
 f178 = figure(178); clf;
 nrs = 3; ncs = 5;
-sz2 = [1000 600];
-set(f178,'Position',[0 0 sz2]);
+sz1 = [1000 600];
+set(f178,'Position',[0 0 sz1]);
 
 % select example and plot
 exS = 2007070944;
@@ -196,8 +196,8 @@ s2 = subplot(nrs,ncs,2); hold on;
 plot([.4 1],[.4 1],'k');
 plot([.5 .5],[.4 1],'k:');
 plot([.4 1],[.5 .5],'k:');
-plot(p_n(I,:),p_b(I,:),'b','LineWidth',1.5);
-scatter(p_n(I,:),p_b(I,:),sz,'k');
+plot(p_n(I,:),p_b(I,:),'color',[0 0 0 .2],'LineWidth',1.5);
+scatter(p_n(I,:),p_b(I,:),sz,'b');
 set(gca,'ytick',[.5 1]);
 set(gca,'xtick',[.5 1]);
 axis tight; plotPrefs;
@@ -205,19 +205,33 @@ axis tight; plotPrefs;
 % plot all the sessions
 subplot(nrs,ncs,3); hold on;
 h = plot(pn_all',pb_all','-','color',[0 0 0 .2]);
-set(h, {'color'}, num2cell([cv .3 * ones(length(cv),1)],2));
+% set(h, {'color'}, num2cell([cv .3 * ones(length(cv),1)],2));
 sz = vol_all(:);
 sz = sz - min(sz) + 1;
 cI2 = repmat(cI,1,6);
 cv2 = col_rgb(cI2+1,:);
-% scatter(pn_all(:),pb_all(:),sz/2,cv2);
+scatter(pn_all(:),pb_all(:),sz/2,cv2);
 plot([.2 1],[.2 1],'k');
 plot([.5 .5],[.2 1],'k:');
 plot([.2 1],[.5 .5],'k:');
+set(gca,'xtick',[.5 1],'ytick',[.5 1]);
 axis tight;
 xlabel('Percent Correct (neural)');
 ylabel('Percent Correct (behavior)');
 plotPrefs;
+
+% signrank of mean performance per session
+scnt = 1;
+x = mean(r.beh_rate_adj_PC(include),2,'omitnan');
+y = mean(r.critp_adj_PC(include),2,'omitnan');
+[pv,~,stats] = signrank(x,y);
+res.stats(scnt).type = 'signrank average behavior vs neural pc';
+res.stats(scnt).test = 'signrank';
+res.stats(scnt).stats = stats;
+res.stats(scnt).p = pv;
+res.stats(scnt).median = median([x y],'omitnan');
+res.stats(scnt).iqr = iqr([x y]);
+res.stats(scnt).n = size([x y]);
 
 % histogram of correlations
 subplot(nrs,ncs,4);
@@ -225,6 +239,10 @@ histogram(cc(include),20,'facecolor','k');
 ylabel('Count (sessions)');
 xlabel('r')
 box off; plotPrefs;
+
+scnt = scnt + 1;
+res.stats(scnt).type = 'median behxneural correlation';
+res.stats(scnt).median = median(cc(include),'omitnan');
 
 % linear model
 T = table();
@@ -234,6 +252,12 @@ T.neural = normalize(pn_all(:));
 T.behavior = pb_all(:);
 mdl = fitlm(T,'behavior ~ volume + contrast + neural',...
             'CategoricalVar','contrast')
+
+scnt = scnt + 1;
+res.stats(scnt).type = mdl.Formula;
+res.stats(scnt).test = 'linear model';
+res.stats(scnt).stats = mdl.gather;
+res.stats(scnt).coeffs = mdl.Coefficients;
 
 % plot model results
 subplot(nrs,ncs,5); hold on;
@@ -268,9 +292,19 @@ plotDist([1 2],y,{'b','r'},[],'sem','mean');
 set(gca,'xtick',[1 2],'xticklabels',{'Low','High'});
 xlabel('Contrast');
 ylabel('Neurometric Threshold');
-plotPrefs;
 [pv,~,stats] = ranksum(y{1},y{2},'tail','left');
 plotPval(pv,1.5,25,'data')
+plotPrefs;
+
+scnt = scnt + 1;
+res.stats(scnt).type = 'ranksum contrast on neurometric threshold';
+res.stats(scnt).test = 'ranksum';
+res.stats(scnt).stats = stats;
+res.stats(scnt).p = pv;
+res.stats(scnt).median = cellfun(@median,y);
+res.stats(scnt).iqr = cellfun(@iqr,y);
+res.stats(scnt).n = cellfun(@length,y);
+
 
 % contrast effect on neurometric slope with matched targets
 subplot(nrs,ncs,10);
@@ -286,6 +320,15 @@ plotPrefs;
 [pv,~,stats] = ranksum(y{1},y{2},'tail','right');
 plotPval(pv,1.5,.1,'data')
 
+scnt = scnt + 1;
+res.stats(scnt).type = 'ranksum contrast on neurometric slope';
+res.stats(scnt).test = 'ranksum';
+res.stats(scnt).stats = stats;
+res.stats(scnt).p = pv;
+res.stats(scnt).median = cellfun(@median,y);
+res.stats(scnt).iqr = cellfun(@iqr,y);
+res.stats(scnt).n = cellfun(@length,y);
+
 s2.Units = 'pixels';
 s1.Position(1) = s1.Position(1) + 100;
 s1.Position(4) = s2.Position(4);
@@ -294,10 +337,7 @@ s7.Position(3) = s2.Position(3);
 s7.Position(1) = s2.Position(1);
 s7.Position(2) = s7.Position(2) + 100;
 
-
-saveFigPDF(f178,sz2,'./_plots/_psych_prediction.pdf',.2);
-
-
+saveFigPDF(f178,sz1,'./_plots/_psych_prediction.pdf',.2);
 
 
 
@@ -707,7 +747,7 @@ for k = 2:length(fields)
     
 end
 
-saveFigPDF(f2,sz,'./_plots/_psych_summary.pdf')
+saveFigPDF(f2,sz2,'./_plots/_psych_summary.pdf',.2)
 
 
 
@@ -840,7 +880,7 @@ for i = 1:length(uM)
 end
 
 
-saveFigPDF(f1,[800 1300],'./_plots/_psych_individual_curves.pdf')
+saveFigPDF(f1,[800 1300],'./_plots/_psych_individual_curves.pdf',.2)
 
 
 

@@ -162,6 +162,236 @@ ops.fig_visible = 'off';
 % plots and stats
 stats_ln = plot_lnmodel_summaries(res_ln,res_psych,r_psych,ops)
 
+
+%% figure ?: STRF analysis
+
+% options
+ops.bins = 8;
+ops.strf_its = 1000;
+ops.resFile = '_res_strf_glm.mat';
+
+
+% run
+res_strf = run_strf(spikeData,sessionData,ops)
+
+% find and remove empty cells
+empty = arrayfun(  @(a)isempty(a.sessionIndex),  res_strf  );
+res_strf(empty) = [];
+
+% compute frequency and time sparseness
+tI = ops.t > -0.1;
+for i = 1:length(res_strf)
+    
+    % compute overall SNR for each STRF method
+    SNR_glm(i) = std(res_strf(i).strf(:,tI),1,[1 2]) ./ ...
+            std(res_strf(i).strf(:,~tI),1,[1 2]);
+    SNR_sta(i) = std(res_strf(i).sta(:,tI),1,[1 2]) ./ ...
+            std(res_strf(i).sta(:,~tI),1,[1 2]);
+    
+    clear strf fk tk;
+    for j = 1:2
+        % frequencies
+        strf = res_strf(i).strf_c(:,tI,j);
+        fk = mean(strf,2) .* std(strf,1,2);
+
+        % time
+        strf = res_strf(i).strf_c(:,:,j);
+        tk = mean(strf,1) .* std(strf,1,1);
+
+        % sparseness over frequencies and time (doesn't like
+        % negative numbers)
+        Sf(i,j) = sparseness(fk+min(fk));
+        St(i,j) = sparseness(tk+min(tk));
+        Sa(i,j) = sparseness(strf(:) + min(strf(:)));
+        
+        % compute SNR (signal being the std in the first 100ms
+        % vs the std in the remaining field)
+        SNR(i,j) = std(strf(:,tI),1,[1 2]) ./ ...
+            std(strf(:,~tI),1,[1 2]);
+        
+% $$$         % compute SNR of shuffled STRF
+% $$$         for ii = 1:1000
+% $$$             S = reshape(strf(randperm(numel(strf))),size(strf));
+% $$$             SNR_shuff(i,j,ii) = std(S(:,tI),1,[1 2]) ./ ...
+% $$$                 std(S(:,~tI),1,[1 2]);
+% $$$             
+% $$$         end
+    end
+end
+
+f3 = figure(33); clf;
+% plot STRFs with different SNRs
+% SNR2use = [1.501 max(SNR(:))];
+SNR2use = [min(SNR(:)) max(SNR(:))];
+nstrf = 25;
+targetpoints = linspace(min(SNR2use),max(SNR2use),nstrf);
+
+% find strfs close to each target point
+for i = 1:numel(targetpoints)
+    [~,strfI(i)] = min(mean(abs(targetpoints(i) - SNR),2));
+end
+strfI = unique(strfI,'stable');
+
+% plot the high contrast strfs
+nrows = ceil(sqrt(nstrf)); ncols = nrows;
+for i = 1:numel(strfI)
+    subplot(nrows,ncols,i);
+    RF = res_strf(strfI(i)).strf_c(:,:,1);
+    RF = (RF - mean(RF(:))) ./ std(RF(:));
+    imagesc(RF,[-5 5])
+    title(sprintf('%3.2f',SNR(strfI(i),2)));
+    if i < numel(targetpoints)
+        set(gca,'xticklabels',[],'yticklabels',[]);
+    end
+    axis square;
+end
+
+
+
+% look at strfs with high SNRs
+I = find(all(SNR > 1.75,2));
+for i = 1:length(I)
+    
+    fprintf('%g ',i);
+    
+    f = res_strf(1).ops.f / 1000;
+    t = 1:13;
+    
+    clf; subplot(1,2,1);
+    imagesc(t,f,res_strf(I(i)).strf_c(:,:,1)); colorbar;
+    title(sprintf('%s\nSNR: %3.2f, BF: %3.2f',...
+                  res_strf(I(i)).cellID,...
+                  SNR(I(i),1),...
+                  res_strf(I(i)).bf(1)/1000),...
+          'interpreter','none');
+    
+    subplot(1,2,2);
+    imagesc(t,f,res_strf(I(i)).strf_c(:,:,2)); colorbar;
+    title(sprintf('SNR: %3.2f, BF: %3.2f',...
+                  SNR(I(i),2),...
+                  res_strf(I(i)).bf(2)/1000));
+    
+    pause;
+    
+end
+
+f32 = figure(32); clf;
+cells2use = [5 12 18 20 57];
+for i = 1:length(cells2use)
+    f = res_strf(1).ops.f / 1000;
+   t = 0:-.025:-.3;
+    
+    subplot(length(cells2use),2,(i-1)*2 + 1);
+    imagesc(t,f,fliplr(res_strf(I(cells2use(i))).strf_c(:,:,1))); ...
+        colorbar;
+    title(sprintf('%s',res_strf(I(cells2use(i))).cellID),...
+          'interpreter','none')
+    text(-.29,10,sprintf('SNR: %3.2f\nBF: %3.2f',...
+                  SNR(I(cells2use(i)),1),...
+                  res_strf(I(cells2use(i))).bf(1)/1000),...
+         'color','w');
+    axis square;
+    plotPrefs;
+    
+    subplot(length(cells2use),2,(i-1)*2 + 2);
+    imagesc(t,f,fliplr(res_strf(I(cells2use(i))).strf_c(:,:,2))); colorbar;
+    text(-.29,10,sprintf('SNR: %3.2f\nBF: %3.2f',...
+                  SNR(I(cells2use(i)),2),...
+                  res_strf(I(cells2use(i))).bf(2)/1000),...
+         'color','w');
+    axis square;
+    plotPrefs;
+    if i == length(cells2use)
+        xlabel('Time (s)'); ylabel('Frequency (kHz)');
+    end
+    
+end
+saveFigPDF(f32,[700 800],'./_plots/_strf_ex.pdf',.2)
+    
+
+f123 = figure(123); clf;
+
+% select the data
+SNRcut = mean(SNR(:)) + 2*std(SNR(:))
+I = find(all(SNR > SNRcut,2));
+BF = cat(1,res_strf(I).bf) / 1000;
+LAG = cat(1,res_strf(I).lag);
+RANGE = cat(1,res_strf(I).range);
+sz = mean(SNR(I),2)
+
+% plot params
+sz = 10;
+alpha = .01;
+nrows = 4;
+ncols = 1;
+
+% selection from SNR dist
+subplot(nrows,ncols,1); hold on;
+histogram(SNR,50,'facecolor','k')
+plot([SNRcut SNRcut],ylim,'r');
+xlabel('STRF SNR'); ylabel('n cells');
+plotPrefs; axis tight square;
+
+% best frequency
+subplot(nrows,ncols,2); hold on;
+plot([min(BF(:)) max(BF(:))],[min(BF(:)) max(BF(:))],...
+     'color',[.5 .5 .5]);
+w = 1;
+scatter(BF(:,1) + unifrnd(-w,w,length(LAG),1),...
+        BF(:,2) + unifrnd(-w,w,length(LAG),1),...
+        sz,'ok','markerfacecolor','k','markerfacealpha',alpha);
+xlabel('Low Contrast BF (kHz)');
+ylabel('High Contrast BF (kHz)');
+plotPrefs; axis tight square;
+
+[p,h,stats] = signrank(BF(:,1),BF(:,2))
+title(sprintf('signrank: p=%03.2f, z = %3.2f',...
+              p,stats.zval));
+
+% lag
+subplot(nrows,ncols,3); hold on;
+w = 0.025 / 5;
+plot([0 .1],[0 .1],'color',[.5 .5 .5]);
+scatter(-LAG(:,1) + unifrnd(-w,w,length(LAG),1),...
+        -LAG(:,2)+ unifrnd(-w,w,length(LAG),1),...
+        sz,'ok','markerfacecolor','k','markerfacealpha',alpha);
+xlabel('Low Contrast Lag (s)');
+ylabel('High Contrast Lag (s)');
+plotPrefs; axis tight square;
+
+[p,h,stats] = signrank(-LAG(:,1),-LAG(:,2))
+title(sprintf('signrank: p=%03.2f, z = %3.2f',...
+              p,stats.zval));
+
+% range
+subplot(nrows,ncols,4); hold on;
+plot([min(RANGE(:)) max(RANGE(:))],[min(RANGE(:)) max(RANGE(:))],'color',[.5 .5 .5]);
+scatter(RANGE(:,1),RANGE(:,2),sz,'ok','markerfacecolor','k','markerfacealpha',alpha);
+xlabel('Low Contrast Range (au)');
+ylabel('High Contrast Range (au)');
+plotPrefs; axis tight square;
+
+[p,h,stats] = signrank(RANGE(:,1),RANGE(:,2))
+title(sprintf('signrank: p=%03.2f, z = %3.2f',...
+              p,stats.zval));
+saveFigPDF(f123,[400 800],'./_plots/_strf_res.pdf',.2)
+
+
+
+
+%% figure ?: normative model with "readout" noise
+run_readout_noise(0:15);
+
+
+%% figure ?: fit lohse model
+ops = [];
+run_lohse_model(ops);
+
+
+
+
+
+
     
 
 
