@@ -1,17 +1,17 @@
-# Cortical efficient coding dynamics shape behavioral performance
-## Angeloni et al. 2021
+Related publication: Angeloni et al. (2023) Dynamics of cortical contrast adaptation predict perception of signals in noise.
+https://doi.org/10.1101/2021.08.11.455845
 
-This code was tested using MATLAB 2019a on Mac OSX. The script `run_analysis.m` generates all of the main figures and statistics used in the paper. To use this script, download the data from DRYAD, unzip into a folder called **_data** and place that folder in the same directory as `run_analysis.m`
+This code was tested using MATLAB 2019a on Mac OSX. The script `run_analysis.m` generates all of the main figures and statistics used in the paper. To use this script, download the data from DRYAD [**insert link**], unzip into a folder called **_data** and place that folder in the same directory as `run_analysis.m`
 
 From scratch, the entire analysis takes ~2-3 days to run (this approximate runtime is on an iMac with 4GHz Core i7 CPU, 16GB RAM). A large proportion of this time is taken fitting LN models to every neuron in the dataset (Figure 6).
 
-### Data
+## Data
 
 The **_data** folder contains data from several experiments:
 
 1. The `_behavior` folder contains code and data from the behavioral experiments. Each mouse has a folder in `_behavior/_data/` which contains a .mat file and a .txt log file for each session.
 
-2. The `_glm` folder contains acute recording data used to fit the Poisson GLM in Figure 2. Each neuron has a .mat file in this folder.
+2. The `_glm` folder contains acute recording data used to fit the Poisson GLM in Figure 2. Each neuron has a .mat file in this folder. Because the fitting procedure was run on a computing cluster, we also provided the fit results in the `_res` folder. More instructions are provided in the next section.
 
 3. The `_spectrograms` folder contains stimulus information for each unique session during the microdrive recordings. Each .mat file contains the full spectrogram generated from the concatenated trials, and other general stimulus information.
 
@@ -49,6 +49,14 @@ The **_data** folder contains data from several experiments:
 
 Run the script `run_analysis.m` to generate all of the main figures, most of the extended data figures, and the statistics. On the first run, this script will take several days, most of the time being occupied by fitting the cross-validated LN models to each of the ~5000 neurons in the dataset (it takes anywhere from 20-60 seconds per neuron). After first the analysis, results files will have been saved and subsequent runs will be much faster.
 
+For your convenience, we have provided precomputed results files used for the paper. They are all in the `_data` folder with the prefix `_res`. If you would like to run the analysis from scratch, move or delete the files with `_res` at the beginning and the script will regenerate them.
+
+### Note on GC-GLM (Figure 2)
+The code to create the plots in Figure 2 exists in a separate GitHub repository: https://github.com/chris-angeloni/contrast_glm. To run this analysis, perform the following steps:
+1. Clone that repo somewhere outside of the current repository.
+2. In `run_analysis.m` change line 178 `cd ../contrast_glm/` to the location of the contrast_glm repo (eg. `cd ./path/to/contrast_glm/`)
+3. Run this last code block to create the figures.
+
 Some extended data figures were generated separately from this script, largely due to processing constraints.
 - Extended Data Figure 2: GC-GLM simulations were run on a computing cluster to massively parallelize and speed up the analysis. The folder `_glm\_simulation` contains the necessary code to do this, but is specific to the cluster setup used by the authors.
-- Extended Data Figure 5: these are the results of a separate pilot study, and the code and data for generating this figure are not included in the code and data repository for this publication. Data and code can be made available on request.
+- Extended Data Figure 7: This analysis examines whether STRFs recorded during the task are affected by contrast. If you would like to run this analysis, you can do so using `run_strf.m` in the main folder. This has not been extensively tested for stable results.
