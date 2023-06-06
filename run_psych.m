@@ -33,8 +33,7 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
         
         % get PSTH
         [PSTH,raster,trials,PSTHs] = makePSTH(spikes{i},e.targOn,ops.edges,ops.smooth);
-        t_spikes = mean(PSTH(:,ops.time > ops.target(1) & ...
-                             ops.time < ops.target(2)),2);
+        t_spikes = mean(PSTH(:,ops.time > ops.target(1) & ops.time <= ops.target(2)),2); % not including <= (equals) can induce rounding errors???     
         
         % trials to include
         include = ~b.abort & b.goodTrials;
@@ -85,6 +84,7 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
         plot(diff(t));
         xlabel('Cell'); ylabel('Time (s)');
         xlim([0 length(spikes)]);
+        set(gca, 'yscale', 'log')
         title('run_psych.m progress');
         drawnow;        
         
@@ -263,6 +263,10 @@ if ~isfield(res,'pop')
                 
                 clf;
                 plot_session_summary_psych(s(sess).sessionID,res,spikeData,sessionData,ops);
+
+                if ~exist('./_plots/_session')
+                    mkdir('./_plots/_session');
+                end
                 
                 fn = sprintf('./_plots/_session/psych_%s%s_%d.pdf',...
                              plot_sig,s(sess).mouse,s(sess).sessionID);

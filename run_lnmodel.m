@@ -11,10 +11,9 @@ for i = 1:length(incl)
     % find the session for this cell
     sI = find(vertcat(sessionData.session.sessionID) == ...
               spikeData.cellinfo{incl(i),2});
-    fp = strsplit(sessionData.session(sI).stimInfo.stim,'\');
-    stimFile = fp{end};
-    stim{i} = fullfile('./_stimuli',stimFile);
-    stimExist(i) = exist(stim{i});
+    sessID = sessionData.session(sI).stimInfo.IDsess;
+    stimfile = fullfile('./_data','_spectrograms',[sessID '-spec.mat']);
+    stimExist(i) = exist(stimfile);
 end
 stimcells = false(size(ops.include));
 stimcells(incl) = stimExist>0;
@@ -25,6 +24,9 @@ toc;
 included_cells = stimcells;
 spikes = spikeData.spikes(included_cells);
 cellInfo = spikeData.cellinfo(included_cells,:);
+if length(stimcells) == 0
+    error('No matching stimuli found... check if ./_data/_spectrograms is empty')
+end
 
 % session for the first neuron
 last_sI = 0;
@@ -352,7 +354,11 @@ for c = 1:length(spikes)
         %% plot results for this neuron
         set(0,'CurrentFigure',f1); clf(f1);
         plot_lnmodel_cell(res,spikes(c),models);
-        saveFigPDF(f1,sz,sprintf('./_plots/_lnmodel/%s_lnmodels.pdf',res.cellID));
+        plot_place = './_plots/_lnmodel';
+        if ~exist(plot_place,'dir')
+            mkdir(plot_place);
+        end
+        saveFigPDF(f1,sz,sprintf('%s/%s_lnmodels.pdf', plot_place, res.cellID));
 
     else
 

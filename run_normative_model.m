@@ -30,7 +30,7 @@ end
 
 
 %% generate results for all values of muT
-resFile = './_data/normative_model.mat';
+resFile = './_data/_res_normative_model.mat';
 %resFile = 'discriminability.mat';
 
 

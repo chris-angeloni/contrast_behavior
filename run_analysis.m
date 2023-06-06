@@ -3,7 +3,9 @@ clear all; close all;
 addpath(genpath('./_functions/'));
 
 %% setup
+root = pwd;
 dataDir = './_data'; % location of data files
+addpath(genpath(dataDir));
 
 % load all spike and session data
 fprintf('Loading spike data... '); tic;
@@ -16,13 +18,13 @@ ops.seed = 1989;
 rng(ops.seed);
 
 
-%% waveform analysis
+% waveform analysis
 res_wave = run_wave(spikeData);
 %f1 = figure(1); clf; plot_waveforms(res_wave);
 
 
 
-%% cell inclusion criteria
+% cell inclusion criteria
 %  1) Spike rate > 1Hz
 %  2) good waveform shapes (not inverted, good pvalue, not super wide)
 wave_include = ones(size(spikeData.cellinfo,1),1);
@@ -129,7 +131,7 @@ ops.resFile = '_res_offset.mat';
 % plot summary
 stats_off = plot_offset_summaries(r_off);
 
-% example neuron
+% example neuronmake
 plot_single_cell_offset(...
     spikeData.cellinfo{26,7},res_off,spikeData,sessionData,ops);
 
@@ -165,235 +167,14 @@ ops.fig_visible = 'off';
 [res_ln] = run_lnmodel(spikeData,sessionData,ops);
 
 % plots and stats
-stats_ln = plot_lnmodel_summaries(res_ln,res_psych,r_psych,ops)
+stats_ln = plot_lnmodel_summaries(res_ln,res_psych,r_psych,ops);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%% simulate inactivation
-% run regularly
-sigma_n = 1;
-sigma_c = [1 2];
-gc = [];
-f = .25;
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-
-% run it without gain control
-sigma_n = 1;
-sigma_c = [1 2];
-gc = 'off';
-f = .25;
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-
-% run it with low gain in contrast
-sigma_n = 1;
-sigma_c = [1 2];
-gc = 'low';
-f = .25;
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-
-% run it with med noise in contrast
-sigma_n = 2;
-sigma_c = [1 2];
-gc = [];
-f = .25;
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-
-% run it with med noise in contrast
-sigma_n = 3;
-sigma_c = [1 2];
-gc = [];
-f = .25;
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-
-% run it with high noise in contrast
-sigma_n = 5;
-sigma_c = [1 2];
-gc = [];
-f = .25;
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-
-
-% simulate silent conditions by scaling the background
-silent_scale = 0.1;
-
-% run it with regular noise in silence
-sigma_n = 1;
-sigma_c = [1 1];   % background is only a product of neural noise
-gc = [];
-f = 2 * .25;       % high contrast targets (scaled as before)
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
-
-% run it with med noise in silence
-sigma_n = 2;
-sigma_c = [1 1];  
-gc = [];
-f = 2 * .25;      
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
-
-% run it with med noise in silence
-sigma_n = 3;
-sigma_c = [1 1];   % background is only a product of neural noise
-gc = [];
-f = 2 * .25;      
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
-
-% run it with high noise in silence
-sigma_n = 5;
-sigma_c = [1 1];   % background is only a product of neural noise
-gc = [];
-f = 2 * .25;       
-run_normative_model_inactivation(sigma_n,sigma_c,gc,f,silent_scale)
-
-
-%  % run it with regular noise in silence
-%  sigma_n = 1;       % neural noise = 1
-%  sigma_c = [1 1];   % background is only a product of neural noise
-%  gc = [];
-%  f = 2 * .25;       % high contrast targets (scaled as before)
-%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-%  
-%  % run it with med noise in silence
-%  sigma_n = 2;       % neural noise = 5 to simulate muscimol
-%  sigma_c = [1 1];   % background is only a product of neural noise
-%  gc = [];
-%  f = 2 * .25;       % high contrast targets (scaled as before)
-%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-%  
-%  % run it with med noise in silence
-%  sigma_n = 3;       % neural noise = 5 to simulate muscimol
-%  sigma_c = [1 1];   % background is only a product of neural noise
-%  gc = [];
-%  f = 2 * .25;       % high contrast targets (scaled as before)
-%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-%  
-%  % run it with high noise in silence
-%  sigma_n = 5;       % neural noise = 5 to simulate muscimol
-%  sigma_c = [1 1];   % background is only a product of neural noise
-%  gc = [];
-%  f = 2 * .25;       % high contrast targets (scaled as before)
-%  run_normative_model_inactivation(sigma_n,sigma_c,gc,f)
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-if 2+2 == 5
-
-    %% Figure 7: choice
-
-    % options
-    ops.resDir = './_data';
-    ops.bin = .005;
-    ops.baseline = [-.1 0];
-    ops.target = [0 .1];
-    ops.response = [.1 1];
-    ops.edges = ops.target(1)+ops.baseline(1) : ...
-        ops.bin : ...
-        ops.target(2)+ops.response(2)-ops.baseline(1);
-    ops.time = ops.edges(1:end-1) + mean(diff(ops.edges));
-    ops.timeStep = .05;
-    ops.timeWindow = ops.timeStep*2;
-    ops.timeCent = (-.1 + ops.timeWindow/2):ops.timeStep:...
-        (max(1) - ops.timeWindow/2);
-    ops.smooth = 2;
-    ops.timeInd = 1;
-    ops.include = include;
-    ops.sig_neurons = false;
-    ops.task = 'psychometric';
-
-    % results filename
-    ops.resFile = 'res_choice.mat';
-
-    % run
-    [res_choice,r_choice] = run_choice(spikeData,sessionData,ops);
-
-    % plot summary
-    stats_choice = plot_choice_summary(res_choice,res_ln,sessionData, ...
-                                       ops);
-
-end
-
-
-%% noise adaptation
-run_noise_adapt = false
-if run_noise_adapt
-    ops.bin = .005;
-    ops.baseline = [-.1 0]; 
-    ops.edges = ops.baseline(1) : ops.bin : 5-ops.baseline(1);
-    ops.time = ops.edges(1:end-1) + mean(diff(ops.edges));
-    ops.tsne_bins = 50;
-    ops.tsne_smooth = 2.5;
-    ops.kpcs = 7;
-    ops.time_index = ops.time > 2 & ops.time < 4;
-    ops.include = include;
-
-    % run
-    res_adapt = run_adapt(spikeData,sessionData,ops);
-
-    % plot summary
-    f2 = figure(2); clf; plot_noise_clusters(res_adapt,ops);
-    saveFigPDF(f2,[800 1000],'./_plots/noise_FR_clustering.pdf')
-end
-
-
-
-
-
-
-
+%% figure 2: GC-GLM
+% to run this, clone https://github.com/chris-angeloni/contrast_glm
+cd(root);
+resPath = fullfile(root,'_data','_glm','_res');
+cd ../contrast_glm/ % replace with path to contrast_glm repo here
+run_gcglm;
 

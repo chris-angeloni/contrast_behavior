@@ -8,6 +8,7 @@ included_cells = ops.include & contains(spikeData.cellinfo(:,end),'offset');
 spikes = spikeData.spikes(included_cells);
 cellInfo = spikeData.cellinfo(included_cells,:);
 
+figure;
 
 %% SINGLE NEURONS
 if ~exist(fullfile(ops.resDir,resFile),'file')
@@ -27,8 +28,7 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
         
         % get PSTH
         [PSTH,raster,trials,PSTHs] = makePSTH(spikes{i},e.targOn,ops.edges,ops.smooth);
-        t_spikes = mean(PSTH(:,ops.time > ops.target(1) & ...
-                             ops.time < ops.target(2)),2);
+        t_spikes = mean(PSTH(:,ops.time > ops.target(1) & ops.time <= ops.target(2)),2); % not including <= (equals) can induce rounding errors???
         [~,sortI] = sortrows(b.trialType);
         
         % trials to include
@@ -90,12 +90,13 @@ if ~exist(fullfile(ops.resDir,resFile),'file')
                                  false);
         critp = reshape(tmp,s.nOff,s.nLvl)';
         
+        % runtime plot
         t(i) = toc(t0); toc(t0);
-        
         plot(diff(t));
         xlabel('Cell'); ylabel('Time (s)');
         xlim([0 length(spikes)]);
         title('run_offset.m progress');
+        set(gca, 'yscale', 'log')
         drawnow;
         
         % save results
