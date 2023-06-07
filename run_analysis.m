@@ -2,11 +2,20 @@ clear all; close all;
 %addpath(genpath('~/chris-lab/code_general/'));
 addpath(genpath('./_functions/'));
 
-%% setup
+% paths
 root = pwd;
 dataDir = './_data'; % location of data files
 addpath(genpath(dataDir));
 
+%% figure 2: GC-GLM
+% to run this, clone https://github.com/chris-angeloni/contrast_glm
+cd(root);
+resPath = fullfile(root,'_data','_glm','_res');
+cd ../contrast_glm/ % replace with path to contrast_glm repo here
+run_gcglm; cd(root); clear ops res r;
+
+
+%% behavioral analysis setup
 % load all spike and session data
 fprintf('Loading spike data... '); tic;
 spikeData = load(fullfile(dataDir,'spikeData.mat')); toc;
@@ -17,12 +26,9 @@ sessionData = load(fullfile(dataDir,'sessionData.mat')); toc;
 ops.seed = 1989;
 rng(ops.seed);
 
-
 % waveform analysis
 res_wave = run_wave(spikeData);
 %f1 = figure(1); clf; plot_waveforms(res_wave);
-
-
 
 % cell inclusion criteria
 %  1) Spike rate > 1Hz
@@ -168,13 +174,3 @@ ops.fig_visible = 'off';
 
 % plots and stats
 stats_ln = plot_lnmodel_summaries(res_ln,res_psych,r_psych,ops);
-
-
-
-%% figure 2: GC-GLM
-% to run this, clone https://github.com/chris-angeloni/contrast_glm
-cd(root);
-resPath = fullfile(root,'_data','_glm','_res');
-cd ../contrast_glm/ % replace with path to contrast_glm repo here
-run_gcglm;
-
