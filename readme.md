@@ -86,6 +86,10 @@ For your convenience, we have provided precomputed results files used for the pa
 
 ## Notes
 
+Code for the GLM in Figure 2 can be found here: https://github.com/chris-angeloni/contrast_glm
+
+Results for the LN model may vary by run (due to crossvalidation splits), however, we have found the effects to largely remain stable over multiple runs.
+
 Some supplementary figures were generated separately from this script, largely due to processing constraints.
 - Supplementary Figure 2: GC-GLM simulations were run on a computing cluster to massively parallelize and speed up the analysis. The folder `_glm\_simulation` contains the necessary code to do this, but is specific to the cluster setup used by the authors.
 - Supplementary Figure 6: This is histology, not code generated.

@@ -24,7 +24,7 @@ toc;
 included_cells = stimcells;
 spikes = spikeData.spikes(included_cells);
 cellInfo = spikeData.cellinfo(included_cells,:);
-if length(stimcells) == 0
+if sum(stimcells) == 0
     error('No matching stimuli found... check if ./_data/_spectrograms is empty')
 end
 
@@ -53,7 +53,7 @@ for c = 1:length(spikes)
 
     t0 = tic;
 
-    if ~exist(fn,'file')
+    if ~exist(fn,'file') & ~exist(resFN, 'file')
 
 
         % format spikes and stimuli (only if cell is in a new session)

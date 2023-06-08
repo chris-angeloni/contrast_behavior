@@ -293,7 +293,7 @@ sz2 = [350 1260];
 % plot stuff
 for i = 1:length(titles)
     fh = figure(i+23); clf; set(fh,'Position',[0 0 sz2]);
-    suptitle(sprintf('%s (n = %d neurons)',titles{i},sum(index{i})));
+    title(sprintf('%s (n = %d neurons)',titles{i},sum(index{i})));
     stat = plot_gain_psych_stats(rln,r_psych,g,index{i},...
                                  stat,statcnt,facut);
     
